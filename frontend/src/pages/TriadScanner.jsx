@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+import ApiMetrics from '../components/ApiMetrics';
 import { runTriadScan as apiRunScan } from '../api';
 
 const TriadScanner = () => {

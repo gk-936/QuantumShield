@@ -31,7 +31,7 @@ html,body{height:100%;font-family:var(--body);font-size:14px;overflow:hidden;}
 ::-webkit-scrollbar-thumb{background:var(--pnb-gold);border-radius:3px;}
 
 .hk-bg {
-  position:fixed;inset:0;z-index:0;
+  position:fixed;inset:0;z-index:-1;
   background: linear-gradient(135deg, #8B1A1A 0%, #B52A20 20%, #CC6010 50%, #E8A830 80%, #FFD060 100%);
 }
 .hk-bg::before {

@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { searchMobileApps, scanMobileApp as apiScanApp } from '../api';
 
 const MobileScanner = () => {
