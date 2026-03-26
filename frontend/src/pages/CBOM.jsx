@@ -80,7 +80,12 @@ const CBOM = () => {
           </tbody>
         </table>
         <div style={{ marginTop: '14px', textAlign: 'center' }}>
-          <button className="btn btn-gold">📥 Download CycloneDX CBOM (JSON)</button>
+          <button 
+            className="btn btn-gold" 
+            onClick={() => window.open('http://localhost:5006/api/data/cbom/download', '_blank')}
+          >
+            📥 Download CycloneDX CBOM (JSON)
+          </button>
         </div>
       </div>
     </div>

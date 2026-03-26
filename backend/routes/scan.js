@@ -2,11 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { performTriadScan } = require('../services/scanner-engine');
 const { analyzeVulnerabilities } = require('../services/ai-service');
-const { discoverEndpoints } = require('../services/api-scanner');
+const { logAuditEvent } = require('../services/audit-service');
 
 // Full Triad Scan
 router.post('/triad', async (req, res) => {
   const { webUrl, vpnUrl, apiUrl, jwtToken } = req.body;
+  
+  // Log the initiation of the scan
+  logAuditEvent({ action: 'START_TRIAD_SCAN', target: webUrl, user: 'hackathon_user' });
   
   try {
     // 1. Run the scanning engine

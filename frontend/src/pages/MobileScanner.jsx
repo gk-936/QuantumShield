@@ -103,7 +103,10 @@ const MobileScanner = () => {
           ) : scanResult && (
             <div className="grid-2">
               <div>
-                <div style={{ fontWeight: 600, color: 'var(--pnb-red)', marginBottom: '10px', fontSize: '13px' }}>Vulnerabilities Identified</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--pnb-red)', fontSize: '13px' }}>Vulnerabilities Identified</div>
+                  <div style={{ fontSize: '11px', color: '#888' }}>v{scanResult.version} • {scanResult.packageSize}</div>
+                </div>
                 {scanResult.findings.map((f, i) => (
                   <div key={i} className="pc-finding" style={{ borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '8px', color: '#333' }}>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -118,7 +121,7 @@ const MobileScanner = () => {
               </div>
               <div style={{ textAlign: 'center', borderLeft: '1px solid #eee', paddingLeft: '20px' }}>
                 <div style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: '#888', letterSpacing: '2px' }}>MOBILE PQC SCORE</div>
-                <div style={{ fontSize: '64px', fontWeight: 700, color: scanResult.score > 70 ? '#1A8A1A' : '#C0272D' }}>{scanResult.score}</div>
+                <div style={{ fontSize: '64px', fontWeight: 700, color: scanResult.pqc_score > 70 ? '#1A8A1A' : '#C0272D' }}>{scanResult.pqc_score}</div>
                 <div className="risk-badge rb-medium" style={{ fontSize: '14px', padding: '6px 20px' }}>NEEDS TRANSITION</div>
                 <button className="btn btn-outline btn-sm" style={{ marginTop: '20px', display: 'block', width: '100%' }}>View Remediation Code</button>
               </div>

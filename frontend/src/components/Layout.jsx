@@ -2,7 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
-const Layout = ({ activePage, setActivePage }) => {
+const Layout = ({ onLogout }) => {
   const location = useLocation();
   
   const pageTitles = {
@@ -26,7 +26,7 @@ const Layout = ({ activePage, setActivePage }) => {
       <div className="hk-bg"></div>
       <Sidebar />
       <div id="main">
-        <Header title={currentTitle} />
+        <Header title={currentTitle} onLogout={onLogout} />
         <div id="content">
           <Outlet />
         </div>

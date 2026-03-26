@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = ({ title }) => {
+const Header = ({ title, onLogout }) => {
   return (
     <div id="topbar">
       <div className="tb-page-title">{title}</div>
@@ -12,7 +12,10 @@ const Header = ({ title }) => {
           <text x="30" y="52" fontFamily="sans-serif" fontSize="5" fill="rgba(255,255,255,0.7)" textAnchor="middle">PQC-Ready</text>
         </svg>
       </div>
-      <div className="tb-welcome">Welcome User: <span>hackathon_user..!</span></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <div className="tb-welcome">User: <span>admin</span></div>
+        <button onClick={onLogout} className="btn btn-outline btn-sm" style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white', padding: '4px 8px' }}>Logout</button>
+      </div>
     </div>
   );
 };
