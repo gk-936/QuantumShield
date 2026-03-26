@@ -1,0 +1,132 @@
+import { searchMobileApps, scanMobileApp as apiScanApp } from '../api';
+
+const MobileScanner = () => {
+  const [apps, setApps] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [scanResult, setScanResult] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+
+  useEffect(() => {
+    searchApps();
+  }, []);
+
+  const searchApps = async () => {
+    setIsSearching(true);
+    try {
+      const response = await searchMobileApps();
+      if (response.data.success) {
+        setApps(response.data.apps);
+      }
+    } catch (err) {
+      console.error('Search Failed:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const runMobileScan = async (app) => {
+    setSelectedApp(app);
+    setIsScanning(true);
+    setScanResult(null);
+    
+    try {
+      const response = await apiScanApp({ appId: app.id, platform: app.platform });
+      if (response.data.success) {
+        setScanResult(response.data.results);
+      }
+    } catch (err) {
+      console.error('Mobile Scan Failed:', err);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  return (
+    <div id="page-mobile" className="page-view">
+      <div className="card">
+        <div className="card-title"><span className="ct-icon">📱</span>Mobile App Presence — Play Store & App Store</div>
+        <p style={{ fontSize: '12px', color: '#666', marginBottom: '16px' }}>Searching for official PNB applications and analyzing their cryptographic posture.</p>
+        
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
+          <input type="text" placeholder="Search for PNB Apps..." defaultValue="PNB" />
+          <button className="btn btn-gold btn-sm" onClick={searchApps}>Refresh Search</button>
+        </div>
+
+        {isSearching ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--pnb-red)', fontFamily: 'var(--mono)' }}>⚡ SEARCHING APP STORES...</div>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>App Name</th>
+                <th>Platform</th>
+                <th>Package ID / SKU</th>
+                <th>Store Status</th>
+                <th>Rating</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {apps.map((app, i) => (
+                <tr key={i}>
+                  <td style={{ fontWeight: 700 }}>{app.name}</td>
+                  <td style={{ color: app.platform === 'Android' ? '#A4C639' : '#555' }}>
+                    {app.platform === 'Android' ? '🤖 Android' : '🍏 iOS'}
+                  </td>
+                  <td style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>{app.id}</td>
+                  <td><span className="risk-badge rb-low">{app.status}</span></td>
+                  <td>⭐ {app.rating}</td>
+                  <td>
+                    <button className="btn btn-gold btn-sm" onClick={() => runMobileScan(app)}>⚡ Scan App</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {selectedApp && (
+        <div className="card" style={{ marginTop: '20px', borderTop: '4px solid var(--pnb-red)' }}>
+          <div className="card-title">
+            Scan Analysis: {selectedApp.name} ({selectedApp.platform})
+          </div>
+          
+          {isScanning ? (
+            <div style={{ textAlign: 'center', padding: '30px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--pnb-red)', marginBottom: '10px' }}>⏳ PERFORMING CRYPTOGRAPHIC ANALYSIS ON ENDPOINTS...</div>
+              <div className="prog-bar"><div className="prog-fill pf-gold" style={{ width: '60%', transition: 'width 2s' }}></div></div>
+            </div>
+          ) : scanResult && (
+            <div className="grid-2">
+              <div>
+                <div style={{ fontWeight: 600, color: 'var(--pnb-red)', marginBottom: '10px', fontSize: '13px' }}>Vulnerabilities Identified</div>
+                {scanResult.findings.map((f, i) => (
+                  <div key={i} className="pc-finding" style={{ borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '8px', color: '#333' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <div className={`pf-sev sev-${f.severity === 'high' || f.severity === 'critical' ? 'danger' : 'warn'}`}></div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '12px' }}>⚠ {f.issue}</div>
+                        <div style={{ fontSize: '11px', color: '#666' }}>{f.detail}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ textAlign: 'center', borderLeft: '1px solid #eee', paddingLeft: '20px' }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: '#888', letterSpacing: '2px' }}>MOBILE PQC SCORE</div>
+                <div style={{ fontSize: '64px', fontWeight: 700, color: scanResult.score > 70 ? '#1A8A1A' : '#C0272D' }}>{scanResult.score}</div>
+                <div className="risk-badge rb-medium" style={{ fontSize: '14px', padding: '6px 20px' }}>NEEDS TRANSITION</div>
+                <button className="btn btn-outline btn-sm" style={{ marginTop: '20px', display: 'block', width: '100%' }}>View Remediation Code</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MobileScanner;
