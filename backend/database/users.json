@@ -1,7 +1,7 @@
 [
   {
     "username": "admin",
-    "password": "pnb_password_2026",
+    "password": "$2b$10$nzBrGvF7beUkqcdzW61h9.EsBDq4QqmOOasf3erPqEIxYV65TTxEK",
     "role": "admin",
     "email": "admin@pnb.bank.in"
   }

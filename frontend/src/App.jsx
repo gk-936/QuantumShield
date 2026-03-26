@@ -66,6 +66,7 @@ function App() {
   const Login = () => {
     const [u, setU] = useState('admin');
     const [p, setP] = useState('pnb_password_2026');
+    const [showP, setShowP] = useState(false);
 
     return (
       <div id="login-page">
@@ -87,7 +88,15 @@ function App() {
           <label className="login-label">Username</label>
           <input className="login-input" type="text" value={u} onChange={(e) => setU(e.target.value)} />
           <label className="login-label">Password</label>
-          <input className="login-input" type="password" value={p} onChange={(e) => setP(e.target.value)} />
+          <div style={{ position: 'relative' }}>
+            <input className="login-input" type={showP ? "text" : "password"} value={p} onChange={(e) => setP(e.target.value)} />
+            <span 
+              onClick={() => setShowP(!showP)} 
+              style={{ position: 'absolute', right: '10px', top: '10px', cursor: 'pointer', fontSize: '14px', color: '#D4A017' }}
+            >
+              {showP ? '👁️' : '🔒'}
+            </span>
+          </div>
           <span className="login-forgot">Forgot Password?</span>
           <button className="login-btn" onClick={() => handleLogin(u, p)}>Sign In</button>
         </div>

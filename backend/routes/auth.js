@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const usersFile = path.join(__dirname, '../database', 'users.json');
 const JWT_SECRET = process.env.JWT_SECRET || 'pnc_secret_key_2026_top_secret';
@@ -22,9 +23,9 @@ router.post('/login', (req, res) => {
     const { username, password } = req.body;
     const users = readUsers();
     
-    const user = users.find(u => u.username === username && u.password === password);
+    const user = users.find(u => u.username === username);
     
-    if (user) {
+    if (user && bcrypt.compareSync(password, user.password)) {
         const token = jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ success: true, token, user: { username: user.username, role: user.role } });
     } else {
