@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { performTriadScan } = require('../services/scanner-engine');
 const { analyzeVulnerabilities } = require('../services/ai-service');
+const { discoverEndpoints } = require('../services/api-scanner');
 const { logAuditEvent } = require('../services/audit-service');
 
 // Full Triad Scan

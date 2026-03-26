@@ -20,6 +20,10 @@ const mobileRoutes = require('./routes/mobile');
 const dataRoutes = require('./routes/data');
 const authRoutes = require('./routes/auth');
 const remediationRoutes = require('./routes/remediation');
+const { initScheduler } = require('./services/scheduler');
+
+// Start Automation Scheduler (Daily 00:00)
+initScheduler();
 
 // Health Check
 app.get('/api/health', (req, res) => {

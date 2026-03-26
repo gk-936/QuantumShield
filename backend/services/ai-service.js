@@ -53,4 +53,29 @@ async function analyzeVulnerabilities(scanResults) {
   }
 }
 
-module.exports = { analyzeVulnerabilities };
+/**
+ * Interactive chat for remediation expert queries.
+ */
+async function askRemediationExpert(question, history = []) {
+    if (!GEMINI_API_KEY) return { text: "AI Expert Offline. Please check API Key." };
+
+    const contents = history.map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.content }]
+    }));
+
+    contents.push({
+        role: 'user',
+        parts: [{ text: `You are a PQC (Post-Quantum Cryptography) expert at Punjab National Bank (PNB). Answer this question based on NIST standards (ML-KEM, ML-DSA): ${question}` }]
+    });
+
+    try {
+        const response = await axios.post(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, { contents });
+        return { text: response.data.candidates[0].content.parts[0].text };
+    } catch (error) {
+        console.error('Expert AI Chat Error:', error.message);
+        throw new Error('AI Expert unavailable.');
+    }
+}
+
+module.exports = { analyzeVulnerabilities, askRemediationExpert };

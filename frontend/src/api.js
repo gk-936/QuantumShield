@@ -32,4 +32,6 @@ export const verifyToken = () => api.get('/auth/verify');
 
 export const generateRemediation = (findings) => api.post('/remediation/generate', { findings });
 
+export const chatWithExpert = (message, history) => api.post('/remediation/chat', { message, history });
+
 export default api;
