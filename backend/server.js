@@ -17,6 +17,7 @@ app.use(helmet());
 const scanRoutes = require('./routes/scan');
 const schedulerRoutes = require('./routes/scheduler');
 const mobileRoutes = require('./routes/mobile');
+const dataRoutes = require('./routes/data');
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -31,6 +32,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/scan', scanRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/mobile', mobileRoutes);
+app.use('/api/data', dataRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

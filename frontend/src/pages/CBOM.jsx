@@ -1,6 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCbomData } from '../api';
 
 const CBOM = () => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getCbomData();
+        if (response.data.success) {
+          setItems(response.data.data.cbomItems);
+        }
+      } catch (err) {
+        console.error('Failed to fetch CBOM data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--pnb-gold)', fontFamily: 'var(--mono)' }}>Loading CBOM Data...</div>;
+  }
+
   return (
     <div id="page-cbom" className="page-view">
       <div className="cbom-stats">
@@ -28,10 +52,31 @@ const CBOM = () => {
       <div className="card">
         <div className="card-title">Detailed Cryptographic Bill of Materials</div>
         <table className="data-table">
-          <thead><tr><th>Application</th><th>Key Length</th><th>Cipher Suite</th><th>Certificate Authority</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Version</th>
+              <th>Algorithm</th>
+              <th>PURL</th>
+              <th>Quantum Safe</th>
+              <th>Recommended Action</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td><b>portal.company.com</b></td><td>2048-Bit</td><td>ECDHE-RSA-AES256-GCM-SHA384</td><td>DigiCert</td></tr>
-            <tr><td><b>vpn.company.com</b></td><td>4096-Bit</td><td>TC5HE-RSA_AE556-GCM-SHA384</td><td>COMODO</td></tr>
+            {items.map((item, i) => (
+              <tr key={i}>
+                <td><b>{item.component}</b></td>
+                <td>{item.version}</td>
+                <td style={{ fontFamily: 'var(--mono)', color: item.quantumSafe ? 'var(--pnb-gold)' : 'var(--pnb-red)' }}>{item.algorithm}</td>
+                <td style={{ fontSize: '10px', color: '#666' }}>{item.purl}</td>
+                <td>
+                  <span className={`risk-badge ${item.quantumSafe ? 'rb-low' : 'rb-high'}`}>
+                    {item.quantumSafe ? 'YES' : 'NO'}
+                  </span>
+                </td>
+                <td>{item.action}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <div style={{ marginTop: '14px', textAlign: 'center' }}>

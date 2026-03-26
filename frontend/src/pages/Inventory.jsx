@@ -1,29 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getInventoryData } from '../api';
 
 const Inventory = () => {
-  const inventoryData = [
-    { name: 'portal.company.com', url: 'https://portal.company.com', ipv4: '34.12.11.45', ipv6: '2001:0db8:85a3:8a2e:0370:7334', type: 'Web App', owner: 'IT', risk: 'High', cert: 'Valid', key: '2048-bit', scan: '2 hrs ago' },
-    { name: 'api.company.com', url: 'https://api.company.com', ipv4: '34.12.11.90', ipv6: '2001:0db8:85a3:8a2e:0430:1111', type: 'API', owner: 'DevOps', risk: 'Medium', cert: 'Expiring', key: '4096-bit', scan: '5 hrs ago' },
-    { name: 'vpn.company.com', url: 'https://vpn.company.com', ipv4: '34.55.90.21', ipv6: '2001:0db8:85a3:8a2e:0990:abcd', type: 'Gateway', owner: 'Infra', risk: 'Critical', cert: 'Expired', key: '1024-bit', scan: '1 hr ago' },
-    { name: 'mail.company.com', url: 'https://mail.company.com', ipv4: '35.11.44.10', ipv6: '2001:0db8:85a3:82a:0a10:ff21', type: 'Server', owner: 'IT', risk: 'Low', cert: 'Valid', key: '3072-bit', scan: '1 day ago' },
-    { name: 'app.company.com', url: 'https://app.company.com', ipv4: '34.77.21.12', ipv6: '2001:0db8:85a3:82a:0b30:8344', type: 'Web App', owner: 'IT', risk: 'Medium', cert: 'Valid', key: '2048-bit', scan: '5 days ago' },
-  ];
+  const [inventoryData, setInventoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getInventoryData();
+        if (response.data.success) {
+          setInventoryData(response.data.data.inventory);
+        }
+      } catch (err) {
+        console.error('Failed to fetch inventory data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--pnb-gold)', fontFamily: 'var(--mono)' }}>Loading Asset Inventory...</div>;
+  }
 
   return (
     <div id="page-inventory" className="page-view">
       <div className="inv-stats">
-        <div className="inv-stat"><div className="is-val">128</div><div className="is-lbl">Total Assets</div></div>
+        <div className="inv-stat"><div className="is-val">{inventoryData.length}</div><div className="is-lbl">Total Assets</div></div>
         <div className="inv-stat info"><div className="is-val" style={{ color: '#1A5ACC' }}>42</div><div className="is-lbl">Public Web Apps</div></div>
         <div className="inv-stat"><div className="is-val" style={{ color: '#1A7A3A' }}>26</div><div className="is-lbl">APIs</div></div>
         <div className="inv-stat"><div className="is-val" style={{ color: '#5A3A8A' }}>37</div><div className="is-lbl">Servers</div></div>
         <div className="inv-stat warn"><div className="is-val">9</div><div className="is-lbl">Expiring Certs</div></div>
         <div className="inv-stat danger"><div className="is-val">14</div><div className="is-lbl">High Risk</div></div>
-      </div>
-      <div className="inv-charts">
-        <div className="card" style={{ margin: 0 }}><div className="card-title" style={{ fontSize: '13px' }}>Asset Type Distribution</div><div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>[Chart]</div></div>
-        <div className="card" style={{ margin: 0 }}><div className="card-title" style={{ fontSize: '13px' }}>Asset Risk Distribution</div><div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>[Chart]</div></div>
-        <div className="card" style={{ margin: 0 }}><div className="card-title" style={{ fontSize: '13px' }}>Certificate Expiry Timeline</div><div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>[Chart]</div></div>
-        <div className="card" style={{ margin: 0 }}><div className="card-title" style={{ fontSize: '13px' }}>IP Version Breakdown</div><div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>[Chart]</div></div>
       </div>
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -39,34 +49,26 @@ const Inventory = () => {
             <thead>
               <tr>
                 <th><input type="checkbox" /></th>
-                <th>Asset Name</th>
-                <th>URL</th>
-                <th>IPv4 Address</th>
-                <th>IPv6 Address</th>
+                <th>Asset ID</th>
+                <th>Name</th>
                 <th>Type</th>
-                <th>Owner</th>
-                <th>Risk</th>
-                <th>Cert Status</th>
-                <th>Key Length</th>
-                <th>Last Scan</th>
+                <th>Protocol</th>
+                <th>Algorithm</th>
+                <th>Status</th>
+                <th># Vuln.</th>
               </tr>
             </thead>
             <tbody>
               {inventoryData.map((d, i) => (
                 <tr key={i}>
                   <td><input type="checkbox" /></td>
-                  <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: '#1A5ACC' }}>{d.name}</td>
-                  <td style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: '#1A5ACC' }}><a href="#" style={{ color: '#1A5ACC', textDecoration: 'none' }}>{d.url}</a></td>
-                  <td style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>{d.ipv4}</td>
-                  <td style={{ fontFamily: 'var(--mono)', fontSize: '10px', color: '#888' }}>{d.ipv6}</td>
+                  <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: '#1A5ACC' }}>{d.id}</td>
+                  <td style={{ fontWeight: 'bold' }}>{d.name}</td>
                   <td>{d.type}</td>
-                  <td>{d.owner}</td>
-                  <td><span className={`risk-badge rb-${d.risk.toLowerCase()}`}>{d.risk}</span></td>
-                  <td className={d.cert === 'Valid' ? 'cert-ok' : d.cert === 'Expiring' ? 'cert-warn' : 'cert-err'}>
-                    {d.cert === 'Valid' ? '✓' : d.cert === 'Expiring' ? '⚠' : '✗'} {d.cert}
-                  </td>
-                  <td style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--pnb-red)' }}>{d.key}</td>
-                  <td style={{ color: 'var(--text-dim)' }}>{d.scan}</td>
+                  <td>{d.protocol}</td>
+                  <td style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: d.algorithm.includes('ML-') ? 'var(--pnb-gold)' : 'var(--pnb-red)' }}>{d.algorithm}</td>
+                  <td><span className={`risk-badge ${d.status === 'PQC Ready' ? 'rb-low' : (d.status === 'Critical' ? 'rb-critical' : 'rb-high')}`}>{d.status}</span></td>
+                  <td>{d.vulnCount}</td>
                 </tr>
               ))}
             </tbody>

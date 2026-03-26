@@ -23,4 +23,8 @@ export const searchMobileApps = () => api.get('/mobile/search');
 
 export const scanMobileApp = (data) => api.post('/mobile/scan', data);
 
+export const getDashboardData = () => api.get('/data/dashboard');
+export const getInventoryData = () => api.get('/data/inventory');
+export const getCbomData = () => api.get('/data/cbom');
+
 export default api;

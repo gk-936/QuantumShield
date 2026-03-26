@@ -1,39 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getDashboardData } from '../api';
 
 const Home = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getDashboardData();
+        if (response.data.success) {
+          setData(response.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--pnb-gold)', fontFamily: 'var(--mono)' }}>Loading Dashboard Data...</div>;
+  }
+
+  if (!data) return <div style={{ padding: '40px', textAlign: 'center' }}>Error loading data.</div>;
+
   return (
     <div id="page-home" className="page-view">
       <div className="home-summary-grid">
         <div className="home-summary-card">
           <span className="hsc-icon">🔍</span>
           <div>
-            <div className="hsc-val">212,450</div>
-            <div className="hsc-lbl">Assets Discovery</div>
-            <div className="hsc-sub">Domains, IPs & Subdomains</div>
+            <div className="hsc-val">{data.summary.assetsDiscovery.value}</div>
+            <div className="hsc-lbl">{data.summary.assetsDiscovery.label}</div>
+            <div className="hsc-sub">{data.summary.assetsDiscovery.subtext}</div>
           </div>
         </div>
         <div className="home-summary-card" style={{ borderLeftColor: '#1A6BAA' }}>
           <span className="hsc-icon">🛡️</span>
           <div>
-            <div className="hsc-val" style={{ color: '#1A6BAA' }}>755/1000</div>
-            <div className="hsc-lbl">Cyber Rating</div>
-            <div className="hsc-sub" style={{ color: '#1A6BAA' }}>Elite-PQC Status</div>
+            <div className="hsc-val" style={{ color: '#1A6BAA' }}>{data.summary.cyberRating.value}</div>
+            <div className="hsc-lbl">{data.summary.cyberRating.label}</div>
+            <div className="hsc-sub" style={{ color: '#1A6BAA' }}>{data.summary.cyberRating.subtext}</div>
           </div>
         </div>
         <div className="home-summary-card" style={{ borderLeftColor: '#1A8A1A' }}>
           <span className="hsc-icon">📋</span>
           <div>
-            <div className="hsc-val" style={{ color: '#1A8A1A' }}>93</div>
-            <div className="hsc-lbl">Active SSL Certs</div>
-            <div className="hsc-sub" style={{ color: '#C0272D' }}>22 weak cryptography</div>
+            <div className="hsc-val" style={{ color: '#1A8A1A' }}>{data.summary.sslCerts.value}</div>
+            <div className="hsc-lbl">{data.summary.sslCerts.label}</div>
+            <div className="hsc-sub" style={{ color: '#C0272D' }}>{data.summary.sslCerts.subtext}</div>
           </div>
         </div>
         <div className="home-summary-card" style={{ borderLeftColor: '#C0272D' }}>
           <span className="hsc-icon">⚠️</span>
           <div>
-            <div className="hsc-val" style={{ color: '#C0272D' }}>8248</div>
-            <div className="hsc-lbl">CBOM Vulnerabilities</div>
-            <div className="hsc-sub" style={{ color: '#C0272D' }}>Requiring immediate action</div>
+            <div className="hsc-val" style={{ color: '#C0272D' }}>{data.summary.cbomVulnerabilities.value}</div>
+            <div className="hsc-lbl">{data.summary.cbomVulnerabilities.label}</div>
+            <div className="hsc-sub" style={{ color: '#C0272D' }}>{data.summary.cbomVulnerabilities.subtext}</div>
           </div>
         </div>
       </div>
@@ -42,29 +68,28 @@ const Home = () => {
           <div className="card">
             <div className="card-title"><span className="ct-icon">📊</span>Assets Inventory</div>
             <div className="grid-2" style={{ gap: '10px', marginBottom: '10px' }}>
-              <div className="stat-chip"><div className="sc-val">8,761</div><div className="sc-lbl">SSL Certificates</div></div>
-              <div className="stat-chip"><div className="sc-val">13,211</div><div className="sc-lbl">Software</div></div>
-              <div className="stat-chip info"><div className="sc-val">3,854</div><div className="sc-lbl">IoT Devices</div></div>
-              <div className="stat-chip warn"><div className="sc-val">1,198</div><div className="sc-lbl">Login Forms</div></div>
+              <div className="stat-chip"><div className="sc-val">{data.inventory.ssl.toLocaleString()}</div><div className="sc-lbl">SSL Certificates</div></div>
+              <div className="stat-chip"><div className="sc-val">{data.inventory.software.toLocaleString()}</div><div className="sc-lbl">Software</div></div>
+              <div className="stat-chip info"><div className="sc-val">{data.inventory.iot.toLocaleString()}</div><div className="sc-lbl">IoT Devices</div></div>
+              <div className="stat-chip warn"><div className="sc-val">{data.inventory.logins.toLocaleString()}</div><div className="sc-lbl">Login Forms</div></div>
             </div>
             <div style={{ height: '160px' }}>
-              {/* Chart.js Placeholder */}
               <div style={{ textAlign: 'center', paddingTop: '60px', color: '#888' }}>[Inventory Chart Placeholder]</div>
             </div>
           </div>
           <div className="card">
             <div className="card-title"><span className="ct-icon">🎯</span>Posture of PQC</div>
             <div style={{ marginBottom: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}><span>ML-KEM Adoption</span><span style={{ fontWeight: 700, color: 'var(--pnb-gold)' }}>33%</span></div>
-              <div className="prog-bar"><div className="prog-fill pf-gold" style={{ width: '33%' }}></div></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}><span>ML-KEM Adoption</span><span style={{ fontWeight: 700, color: 'var(--pnb-gold)' }}>{data.posture.mlKemAdoption}%</span></div>
+              <div className="prog-bar"><div className="prog-fill pf-gold" style={{ width: `${data.posture.mlKemAdoption}%` }}></div></div>
             </div>
             <div style={{ marginBottom: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}><span>ML-DSA Transition</span><span style={{ fontWeight: 700, color: 'var(--pnb-gold)' }}>22%</span></div>
-              <div className="prog-bar"><div className="prog-fill pf-gold" style={{ width: '22%' }}></div></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}><span>ML-DSA Transition</span><span style={{ fontWeight: 700, color: 'var(--pnb-gold)' }}>{data.posture.mlDsaTransition}%</span></div>
+              <div className="prog-bar"><div className="prog-fill pf-gold" style={{ width: `${data.posture.mlDsaTransition}%` }}></div></div>
             </div>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}><span>Legacy Protocol Removal</span><span style={{ fontWeight: 700, color: '#C0272D' }}>8%</span></div>
-              <div className="prog-bar"><div className="prog-fill pf-red" style={{ width: '8%' }}></div></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}><span>Legacy Protocol Removal</span><span style={{ fontWeight: 700, color: '#C0272D' }}>{data.posture.legacyRemoval}%</span></div>
+              <div className="prog-bar"><div className="prog-fill pf-red" style={{ width: `${data.posture.legacyRemoval}%` }}></div></div>
             </div>
           </div>
         </div>
@@ -72,7 +97,6 @@ const Home = () => {
           <div className="card">
             <div className="card-title"><span className="ct-icon">⭐</span>Cyber Rating Distribution</div>
             <div style={{ height: '180px' }}>
-              {/* Chart.js Placeholder */}
               <div style={{ textAlign: 'center', paddingTop: '70px', color: '#888' }}>[Rating Chart Placeholder]</div>
             </div>
             <div className="grid-4" style={{ gap: '8px', marginTop: '12px' }}>
@@ -89,10 +113,10 @@ const Home = () => {
                 <div style={{ textAlign: 'center', paddingTop: '50px', color: '#888' }}>[CBOM Chart Placeholder]</div>
               </div>
               <div>
-                <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#C0272D', borderRadius: '2px', display: 'inline-block' }}></span>Critical: <b>2,847</b></div>
-                <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#E8A030', borderRadius: '2px', display: 'inline-block' }}></span>High: <b>3,120</b></div>
-                <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#1A8A1A', borderRadius: '2px', display: 'inline-block' }}></span>Medium: <b>1,881</b></div>
-                <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#1A5ACC', borderRadius: '2px', display: 'inline-block' }}></span>Low: <b>400</b></div>
+                <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#C0272D', borderRadius: '2px', display: 'inline-block' }}></span>Critical: <b>{data.cbomSummary.critical.toLocaleString()}</b></div>
+                <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#E8A030', borderRadius: '2px', display: 'inline-block' }}></span>High: <b>{data.cbomSummary.high.toLocaleString()}</b></div>
+                <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#1A8A1A', borderRadius: '2px', display: 'inline-block' }}></span>Medium: <b>{data.cbomSummary.medium.toLocaleString()}</b></div>
+                <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#1A5ACC', borderRadius: '2px', display: 'inline-block' }}></span>Low: <b>{data.cbomSummary.low.toLocaleString()}</b></div>
               </div>
             </div>
           </div>
