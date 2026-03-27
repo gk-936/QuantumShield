@@ -17,8 +17,8 @@ class MobileScanRequest(BaseModel):
 
 
 @router.get("/search")
-def search():
-    apps = search_pnb_apps()
+def search(query: str = ""):
+    apps = search_pnb_apps(query)
     return {"success": True, "apps": apps}
 
 

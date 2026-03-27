@@ -102,6 +102,8 @@ def generate_cyclonedx(items: list) -> dict:
                 "purl": item.get("purl", ""),
                 "properties": [
                     {"name": "quantum-shield:crypto-algorithm", "value": item.get("algorithm", "")},
+                    {"name": "quantum-shield:key-size", "value": item.get("key_size", "")},
+                    {"name": "quantum-shield:mode", "value": item.get("mode", "")},
                     {"name": "quantum-shield:quantum-safe", "value": str(item.get("quantum_safe", False)).lower()},
                 ],
             }

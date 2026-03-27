@@ -5,13 +5,22 @@ Mobile application scanner service.
 from datetime import datetime
 
 
-def search_pnb_apps(query: str = "PNB") -> list:
-    """Search for PNB mobile applications."""
-    return [
+def search_pnb_apps(query: str = "") -> list:
+    """Search for PNB mobile applications and return Official and Verified apps matching the query."""
+    all_apps = [
         {"id": "com.pnb.pnbone",  "name": "PNB ONE",                "platform": "Android", "status": "Official", "rating": 4.2},
         {"id": "com.pnb.mpassbook","name": "PNB mPassbook",         "platform": "Android", "status": "Official", "rating": 3.9},
         {"id": "id123456789",      "name": "PNB ONE",                "platform": "iOS",     "status": "Official", "rating": 4.5},
         {"id": "com.pnb.corp",     "name": "PNB Corporate Transfer", "platform": "Android", "status": "Official", "rating": 3.5},
+        {"id": "com.pnb.auth",     "name": "PNB Authenticator",      "platform": "Android", "status": "Verified", "rating": 4.7},
+        {"id": "com.pnb.lite",     "name": "PNB ONE Lite",           "platform": "Android", "status": "Verified", "rating": 4.1},
+        {"id": "com.fake.pnb",     "name": "PNB Rewards Tracker",    "platform": "Android", "status": "Unverified", "rating": 2.1},
+    ]
+    
+    query_lower = query.lower()
+    return [
+        app for app in all_apps 
+        if query_lower in app["name"].lower() and app["status"] in ["Official", "Verified"]
     ]
 
 

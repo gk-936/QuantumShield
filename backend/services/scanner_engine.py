@@ -107,6 +107,8 @@ def _scan_web_tls(web_url: str) -> dict:
                 "bits": cipher_bits,
                 "tls_version": tls_version,
                 "key_type": key_type,
+                "key_size": f"{cipher_bits}-bit",
+                "mode": "GCM" if "GCM" in cipher_name else "CBC"
             }
         })
 

@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getDashboardData } from '../api';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js';
+import { Doughnut, Bar, Line } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
 
 const Home = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +36,7 @@ const Home = () => {
   return (
     <div id="page-home" className="page-view">
       <div className="home-summary-grid">
-        <div className="home-summary-card">
+        <div className="home-summary-card" onClick={() => navigate('/discovery')} style={{ cursor: 'pointer' }}>
           <span className="hsc-icon">🔍</span>
           <div>
             <div className="hsc-val">{data.summary.assetsDiscovery.value}</div>
@@ -38,7 +44,7 @@ const Home = () => {
             <div className="hsc-sub">{data.summary.assetsDiscovery.subtext}</div>
           </div>
         </div>
-        <div className="home-summary-card" style={{ borderLeftColor: '#1A6BAA' }}>
+        <div className="home-summary-card" onClick={() => navigate('/rating')} style={{ cursor: 'pointer', borderLeftColor: '#1A6BAA' }}>
           <span className="hsc-icon">🛡️</span>
           <div>
             <div className="hsc-val" style={{ color: '#1A6BAA' }}>{data.summary.cyberRating.value}</div>
@@ -46,7 +52,7 @@ const Home = () => {
             <div className="hsc-sub" style={{ color: '#1A6BAA' }}>{data.summary.cyberRating.subtext}</div>
           </div>
         </div>
-        <div className="home-summary-card" style={{ borderLeftColor: '#1A8A1A' }}>
+        <div className="home-summary-card" onClick={() => navigate('/posture')} style={{ cursor: 'pointer', borderLeftColor: '#1A8A1A' }}>
           <span className="hsc-icon">📋</span>
           <div>
             <div className="hsc-val" style={{ color: '#1A8A1A' }}>{data.summary.sslCerts.value}</div>
@@ -54,7 +60,7 @@ const Home = () => {
             <div className="hsc-sub" style={{ color: '#C0272D' }}>{data.summary.sslCerts.subtext}</div>
           </div>
         </div>
-        <div className="home-summary-card" style={{ borderLeftColor: '#C0272D' }}>
+        <div className="home-summary-card" onClick={() => navigate('/cbom')} style={{ cursor: 'pointer', borderLeftColor: '#C0272D' }}>
           <span className="hsc-icon">⚠️</span>
           <div>
             <div className="hsc-val" style={{ color: '#C0272D' }}>{data.summary.cbomVulnerabilities.value}</div>
@@ -74,7 +80,17 @@ const Home = () => {
               <div className="stat-chip warn"><div className="sc-val">{data.inventory.logins.toLocaleString()}</div><div className="sc-lbl">Login Forms</div></div>
             </div>
             <div style={{ height: '160px' }}>
-              <div style={{ textAlign: 'center', paddingTop: '60px', color: '#888' }}>[Inventory Chart Placeholder]</div>
+              <Doughnut 
+                data={{
+                  labels: ['SSL', 'Software', 'IoT', 'Logins'],
+                  datasets: [{
+                    data: [data.inventory.ssl, data.inventory.software, data.inventory.iot, data.inventory.logins],
+                    backgroundColor: ['#1A6BAA', '#C8860A', '#1A8A1A', '#C0272D'],
+                    borderWidth: 0
+                  }]
+                }}
+                options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }}
+              />
             </div>
           </div>
           <div className="card">
@@ -97,7 +113,17 @@ const Home = () => {
           <div className="card">
             <div className="card-title"><span className="ct-icon">⭐</span>Cyber Rating Distribution</div>
             <div style={{ height: '180px' }}>
-              <div style={{ textAlign: 'center', paddingTop: '70px', color: '#888' }}>[Rating Chart Placeholder]</div>
+              <Bar 
+                data={{
+                  labels: ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'],
+                  datasets: [{
+                    label: 'Rating Distribution',
+                    data: [12, 19, 3, 5],
+                    backgroundColor: ['#1A6BAA', '#C8860A', '#1A8A1A', '#C0272D']
+                  }]
+                }}
+                options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }}
+              />
             </div>
             <div className="grid-4" style={{ gap: '8px', marginTop: '12px' }}>
               <div style={{ textAlign: 'center', padding: '8px', background: '#E8F0FF', borderRadius: '8px' }}><div style={{ fontWeight: 700, color: '#1A5ACC', fontSize: '13px' }}>Tier 1</div><div style={{ fontSize: '10px', color: '#666' }}>Excellent</div></div>
@@ -110,7 +136,17 @@ const Home = () => {
             <div className="card-title"><span className="ct-icon">📋</span>CBOM Quick Overview</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, height: '130px' }}>
-                <div style={{ textAlign: 'center', paddingTop: '50px', color: '#888' }}>[CBOM Chart Placeholder]</div>
+                <Doughnut 
+                  data={{
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                      data: [data.cbomSummary.critical, data.cbomSummary.high, data.cbomSummary.medium, data.cbomSummary.low],
+                      backgroundColor: ['#C0272D', '#E8A030', '#1A8A1A', '#1A5ACC'],
+                      borderWidth: 0
+                    }]
+                  }}
+                  options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }}
+                />
               </div>
               <div>
                 <div style={{ marginBottom: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', background: '#C0272D', borderRadius: '2px', display: 'inline-block' }}></span>Critical: <b>{data.cbomSummary.critical.toLocaleString()}</b></div>

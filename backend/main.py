@@ -12,7 +12,7 @@ load_dotenv()
 
 from db import engine, Base
 from seed_data import seed
-from routers import auth, scan, data, remediation, mobile, scheduler
+from routers import auth, scan, data, remediation, mobile, discovery, scheduler
 
 
 @asynccontextmanager
@@ -63,6 +63,7 @@ app.include_router(auth.router,        prefix="/api/auth",        tags=["Auth"])
 app.include_router(scan.router,        prefix="/api/scan",        tags=["Scan"])
 app.include_router(data.router,        prefix="/api/data",        tags=["Data"])
 app.include_router(remediation.router, prefix="/api/remediation", tags=["Remediation"])
+app.include_router(discovery.router, prefix="/api/discovery", tags=["discovery"])
 app.include_router(mobile.router,      prefix="/api/mobile",      tags=["Mobile"])
 app.include_router(scheduler.router,   prefix="/api/scheduler",   tags=["Scheduler"])
 

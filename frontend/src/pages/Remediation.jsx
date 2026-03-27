@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateRemediation, chatWithExpert } from '../api';
+import ReactMarkdown from 'react-markdown';
+import { Copy, Terminal, Zap } from 'lucide-react';
 
 const Remediation = () => {
   const [remediations, setRemediations] = useState([]);
@@ -83,8 +85,15 @@ const Remediation = () => {
                     <pre>{r.code}</pre>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                        <button className="btn btn-gold btn-sm">🚀 Deploy via Ansible</button>
-                        <button className="btn btn-outline btn-sm">📋 Copy Snippet</button>
+                        <button className="btn btn-gold btn-sm" onClick={() => alert(`Initiating Ansible Playbook for: ${r.title}`)}>
+                          <Terminal size={14} style={{ marginRight: '6px' }} /> Deploy via Ansible
+                        </button>
+                        <button className="btn btn-outline btn-sm" onClick={() => {
+                          navigator.clipboard.writeText(r.code);
+                          alert('Snippet copied to clipboard!');
+                        }}>
+                          <Copy size={14} style={{ marginRight: '6px' }} /> Copy Snippet
+                        </button>
                     </div>
                 </div>
                 </div>
@@ -109,7 +118,7 @@ const Remediation = () => {
                             boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                             border: m.role === 'model' ? '1px solid #ddd' : 'none'
                         }}>
-                            {m.content}
+                            <ReactMarkdown>{m.content}</ReactMarkdown>
                         </div>
                     </div>
                 ))}

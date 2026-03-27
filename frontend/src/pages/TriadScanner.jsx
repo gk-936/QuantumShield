@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ApiMetrics from '../components/ApiMetrics';
-import { runTriadScan as apiRunScan } from '../api';
+import { runTriadScan as apiRunScan, chatWithExpert } from '../api';
 
 const TriadScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
@@ -11,6 +11,22 @@ const TriadScanner = () => {
   const [cbom, setCbom] = useState(null);
   const [remediation, setRemediation] = useState([]);
   const [scanProgress, setScanProgress] = useState('');
+  const [tokenAnalysis, setTokenAnalysis] = useState('');
+  const [analyzingToken, setAnalyzingToken] = useState(false);
+
+  const handleTokenAnalysis = async () => {
+    const token = document.getElementById('jwt-token-sandbox').value;
+    if (!token) return;
+    setAnalyzingToken(true);
+    try {
+      const res = await chatWithExpert(`Analyze this JWT token for PQC vulnerabilities and provide a QVS score (100/10/0) and NIST recommendation: ${token}`);
+      setTokenAnalysis(res.data.text);
+    } catch (e) {
+      setTokenAnalysis('AI Analysis Failed. Ensure API Key is set.');
+    } finally {
+      setAnalyzingToken(false);
+    }
+  };
 
   const runTriadScan = async () => {
     setIsScanning(true);
@@ -28,7 +44,7 @@ const TriadScanner = () => {
         webUrl: document.getElementById('scan-web').value,
         vpnUrl: document.getElementById('scan-vpn').value,
         apiUrl: document.getElementById('scan-api').value,
-        jwtToken: document.getElementById('jwt-token').value
+        jwtToken: document.getElementById('jwt-token-sandbox').value
       });
 
       if (response.data.success) {
@@ -42,7 +58,7 @@ const TriadScanner = () => {
       }
     } catch (err) {
       console.error('Scan Failed:', err);
-      alert('Scan failed. Ensure the Python/FastAPI backend is running on port 5000.');
+      alert('Scan failed. Ensure the Python/FastAPI backend is running on port 5006.');
     } finally {
       setIsScanning(false);
       setScanProgress('');
@@ -92,7 +108,7 @@ const TriadScanner = () => {
         </div>
         <div style={{ marginTop: '10px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '6px' }}>⬡ API PILLAR — Paste a sample JWT or OAuth Bearer Token for signing-algorithm analysis</div>
-          <textarea id="jwt-token" className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }} defaultValue="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fakesig"></textarea>
+          <textarea id="jwt-token-sandbox" className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }} defaultValue="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fakesig"></textarea>
         </div>
         <button
           className="btn btn-gold"
@@ -225,9 +241,17 @@ const TriadScanner = () => {
 
           {/* ── JWT Sandbox ───────────────────────────────────────────── */}
           <div className="jwt-sandbox card">
-            <div className="card-title" style={{ fontSize: '13px' }}><span className="ct-icon">🔍</span> JWT Quantum Analysis Sandbox</div>
-            <textarea className="form-input" placeholder="Paste JWT token here..." defaultValue="eyJhbGciOiJSUzI1NiIs..." style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }}></textarea>
-            <button className="btn btn-red btn-sm" style={{ marginTop: '8px' }}>🔍 Analyze Token</button>
+              <div className="card-title" style={{ fontSize: '13px' }}><span className="ct-icon">🔍</span> JWT Quantum Analysis Sandbox</div>
+              <textarea className="form-input" placeholder="Paste JWT token here..." id="jwt-token-sandbox-results" defaultValue="eyJhbGciOiJSUzI1NiIs..." style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }}></textarea>
+              <button className="btn btn-red btn-sm" style={{ marginTop: '8px' }} onClick={handleTokenAnalysis} disabled={analyzingToken}>
+                {analyzingToken ? '⏳ ANALYZING...' : '🔍 Analyze Token'}
+              </button>
+              {tokenAnalysis && (
+                <div style={{ marginTop: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '8px', borderLeft: '3px solid #C0272D', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
+                  <div style={{ fontWeight: 700, marginBottom: '6px', color: '#C0272D' }}>🛡️ Architect Analysis:</div>
+                  {tokenAnalysis}
+                </div>
+              )}
           </div>
         </div>
       )}

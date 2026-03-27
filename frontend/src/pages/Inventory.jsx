@@ -10,7 +10,7 @@ const Inventory = () => {
       try {
         const response = await getInventoryData();
         if (response.data.success) {
-          setInventoryData(response.data.data.inventory);
+          setInventoryData(response.data.data);
         }
       } catch (err) {
         console.error('Failed to fetch inventory data:', err);
@@ -49,26 +49,29 @@ const Inventory = () => {
             <thead>
               <tr>
                 <th><input type="checkbox" /></th>
-                <th>Asset ID</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Protocol</th>
+                 <th>Asset PURL / ID</th>
+                <th>Component Name</th>
+                <th>Category</th>
+                <th>Version</th>
                 <th>Algorithm</th>
-                <th>Status</th>
-                <th># Vuln.</th>
+                <th>Risk Profile</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {inventoryData.map((d, i) => (
                 <tr key={i}>
                   <td><input type="checkbox" /></td>
-                  <td style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: '#1A5ACC' }}>{d.id}</td>
-                  <td style={{ fontWeight: 'bold' }}>{d.name}</td>
-                  <td>{d.type}</td>
-                  <td>{d.protocol}</td>
-                  <td style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: d.algorithm.includes('ML-') ? 'var(--pnb-gold)' : 'var(--pnb-red)' }}>{d.algorithm}</td>
-                  <td><span className={`risk-badge ${d.status === 'PQC Ready' ? 'rb-low' : (d.status === 'Critical' ? 'rb-critical' : 'rb-high')}`}>{d.status}</span></td>
-                  <td>{d.vulnCount}</td>
+                  <td style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: '#1A5ACC' }}>{d.purl || `ASSET-${i+100}`}</td>
+                  <td style={{ fontWeight: 'bold' }}>{d.component}</td>
+                  <td><span style={{ fontSize: '11px', background: '#f0f0f0', padding: '2px 8px', borderRadius: '4px' }}>{d.category || 'Software'}</span></td>
+                  <td>{d.version || 'v1.0'}</td>
+                  <td style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: d.algorithm?.includes('ML-') ? 'var(--pnb-gold)' : 'var(--pnb-red)' }}>{d.algorithm}</td>
+                  <td><span className={`risk-badge ${d.risk === 'Low' ? 'rb-low' : (d.risk === 'Critical' ? 'rb-critical' : 'rb-high')}`}>{d.risk}</span></td>
+                  <td style={{ display: 'flex', gap: '5px' }}>
+                    <button className="btn btn-outline btn-sm" style={{ padding: '2px 8px' }} onClick={() => alert(`Reviewing ${d.component}...`)}>View</button>
+                    <button className="btn btn-red btn-sm" style={{ padding: '2px 8px' }} onClick={() => alert(`Revocation triggered for ${d.component}. Policy updated.`)}>Delete</button>
+                  </td>
                 </tr>
               ))}
             </tbody>

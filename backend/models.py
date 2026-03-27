@@ -62,6 +62,8 @@ class CbomItem(Base):
     risk = Column(String(50), default="High")
     category = Column(String(100), default="")  # TLS, JWT, VPN, etc.
     purl = Column(String(500), default="")
+    key_size = Column(String(50), default="")
+    mode = Column(String(50), default="")
 
 
 class ScanResult(Base):

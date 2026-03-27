@@ -19,7 +19,7 @@ export const createSchedule = (data) => api.post('/scheduler/create', data);
 
 export const listSchedules = () => api.get('/scheduler/list');
 
-export const searchMobileApps = () => api.get('/mobile/search');
+export const searchMobileApps = (query) => api.get('/mobile/search', { params: { query } });
 
 export const scanMobileApp = (data) => api.post('/mobile/scan', data);
 
@@ -33,5 +33,6 @@ export const verifyToken = () => api.get('/auth/verify');
 export const generateRemediation = (findings) => api.post('/remediation/generate', { findings });
 
 export const chatWithExpert = (message, history) => api.post('/remediation/chat', { message, history });
+export const sendEmailReport = (data) => api.post('/data/report/send', data);
 
 export default api;
