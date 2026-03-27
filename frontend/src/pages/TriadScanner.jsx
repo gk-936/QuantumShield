@@ -6,14 +6,24 @@ const TriadScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [findings, setFindings] = useState({ web: [], vpn: [], api: [] });
-  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [riskScores, setRiskScores] = useState({ web: 0, vpn: 0, api: 0, overall: 0 });
   const [apiMetrics, setApiMetrics] = useState(null);
+  const [cbom, setCbom] = useState(null);
+  const [remediation, setRemediation] = useState([]);
+  const [scanProgress, setScanProgress] = useState('');
 
   const runTriadScan = async () => {
     setIsScanning(true);
     setShowResults(false);
-    
+    setScanProgress('Initializing Triad Scanning Engine...');
+
     try {
+      setScanProgress('Probing Web/TLS endpoints...');
+      await new Promise(r => setTimeout(r, 400));
+      setScanProgress('Analyzing VPN gateway protocols...');
+      await new Promise(r => setTimeout(r, 400));
+      setScanProgress('Parsing API tokens & mTLS config...');
+
       const response = await apiRunScan({
         webUrl: document.getElementById('scan-web').value,
         vpnUrl: document.getElementById('scan-vpn').value,
@@ -24,20 +34,45 @@ const TriadScanner = () => {
       if (response.data.success) {
         const result = response.data.data;
         setFindings(result.findings);
-        setAiAnalysis(result.aiAnalysis);
+        setRiskScores(result.riskScores || { web: 0, vpn: 0, api: 0, overall: 0 });
         setApiMetrics(result.apiMetrics);
+        setCbom(result.cbom);
+        setRemediation(result.remediation || []);
         setShowResults(true);
       }
     } catch (err) {
       console.error('Scan Failed:', err);
-      alert('Scan failed. Ensure backend is running.');
+      alert('Scan failed. Ensure the Python/FastAPI backend is running on port 5000.');
     } finally {
       setIsScanning(false);
+      setScanProgress('');
     }
+  };
+
+  const pillarMeta = {
+    web: { tag: 'WEB PILLAR', title: 'TLS Certificate Engine', subtitle: 'Web Server Cryptanalysis', class: 'pillar-a', icon: '🌐' },
+    vpn: { tag: 'VPN PILLAR', title: 'VPN/TLS Gateway Engine', subtitle: 'Gateway Protocol Analysis', class: 'pillar-b', icon: '🔒' },
+    api: { tag: 'API PILLAR', title: 'API Security Engine', subtitle: 'JWT & mTLS Analysis', class: 'pillar-c', icon: '⚡' },
+  };
+
+  const qvsColor = (score) => {
+    if (score >= 80) return '#C0272D';
+    if (score >= 50) return '#D47800';
+    if (score >= 20) return '#1A6BAA';
+    return '#1A8A1A';
+  };
+
+  const qvsLabel = (score) => {
+    if (score >= 80) return 'CRITICAL';
+    if (score >= 50) return 'HIGH';
+    if (score >= 20) return 'MODERATE';
+    return 'PQC-READY';
   };
 
   return (
     <div id="page-triad" className="page-view">
+
+      {/* ── Input Area ───────────────────────────────────────────────── */}
       <div className="scan-input-area">
         <div className="card-title"><span className="ct-icon">⚡</span>Triad Scanner — Define Attack Surface</div>
         <div className="scan-row">
@@ -57,11 +92,11 @@ const TriadScanner = () => {
         </div>
         <div style={{ marginTop: '10px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '6px' }}>⬡ API PILLAR — Paste a sample JWT or OAuth Bearer Token for signing-algorithm analysis</div>
-          <textarea id="jwt-token" className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }} defaultValue="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+          <textarea id="jwt-token" className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }} defaultValue="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fakesig"></textarea>
         </div>
-        <button 
-          className="btn btn-gold" 
-          style={{ marginTop: '12px', fontSize: '16px' }} 
+        <button
+          className="btn btn-gold"
+          style={{ marginTop: '12px', fontSize: '16px', width: '100%' }}
           onClick={runTriadScan}
           disabled={isScanning}
         >
@@ -69,64 +104,156 @@ const TriadScanner = () => {
         </button>
       </div>
 
+      {/* ── Scan Progress ────────────────────────────────────────────── */}
+      {isScanning && (
+        <div className="scan-progress-bar">
+          <div className="scan-progress-pulse"></div>
+          <span className="scan-progress-text">{scanProgress}</span>
+        </div>
+      )}
+
+      {/* ── Results ──────────────────────────────────────────────────── */}
       {showResults && (
         <div id="triad-results">
-          <div className="triad-grid">
-            {Object.keys(findings).map((pillar) => (
-              <div key={pillar} className={`pillar-card pillar-${pillar === 'web' ? 'a' : pillar === 'vpn' ? 'b' : 'c'}`}>
-                <div className="pc-tag">{pillar.toUpperCase()} PILLAR</div>
-                <div className="pc-title">{pillar === 'web' ? 'Web Server Cryptanalysis' : pillar === 'vpn' ? 'Gateway Protocol Analysis' : 'API Auth & Token Analysis'}</div>
-                <div className="pc-findings">
-                  {findings[pillar].map((f, i) => (
-                    <div key={i} className="pc-finding">
-                      <div className={`pf-sev sev-${f.severity === 'high' || f.severity === 'critical' ? 'danger' : 'warn'}`}></div>
-                      <div>
-                        <div style={{ fontSize: '11px', marginBottom: '2px' }}>⚠ {f.issue}</div>
-                        <div style={{ fontFamily: 'var(--mono)', fontSize: '9px', opacity: 0.7 }}>{f.recommendation}</div>
+
+          {/* QVS Overview */}
+          <div className="grid-2" style={{ marginBottom: '16px' }}>
+            <div className="card" style={{ margin: 0 }}>
+              <div className="card-title" style={{ fontSize: '13px' }}>Quantum Vulnerability Score (QVS)</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--disp)', fontSize: '64px', fontWeight: 700, color: qvsColor(riskScores.overall), lineHeight: 1, textShadow: `0 0 30px ${qvsColor(riskScores.overall)}33` }}>
+                    {riskScores.overall}
+                  </div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--text-dim)', letterSpacing: '2px' }}>QVS / 100</div>
+                  <div style={{ marginTop: '8px', padding: '4px 16px', border: `1px solid ${qvsColor(riskScores.overall)}80`, color: qvsColor(riskScores.overall), fontFamily: 'var(--mono)', fontSize: '11px', display: 'inline-block', borderRadius: '4px' }}>
+                    {qvsLabel(riskScores.overall)}
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  {['web', 'vpn', 'api'].map((p) => (
+                    <div key={p} style={{ marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
+                        <span>{p === 'web' ? 'WEB / TLS' : p === 'vpn' ? 'VPN / TLS' : 'API / JWT'}</span>
+                        <span style={{ color: qvsColor(riskScores[p]), fontWeight: 700 }}>{riskScores[p]}</span>
+                      </div>
+                      <div className="prog-bar">
+                        <div className="prog-fill pf-red" style={{ width: `${riskScores[p]}%`, background: `linear-gradient(90deg, ${qvsColor(riskScores[p])}, ${qvsColor(riskScores[p])}AA)` }}></div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            ))}
+            </div>
+            <ApiMetrics data={apiMetrics} />
           </div>
 
-          {aiAnalysis && (
-            <div className="card" style={{ borderLeft: '4px solid var(--pnb-gold)' }}>
-              <div className="card-title"><span className="ct-icon">🧠</span> AI-Driven Post-Quantum Analysis (Gemini 1.5)</div>
-              <p style={{ fontSize: '13px', lineHeight: '1.6', color: '#333' }}>{aiAnalysis.summary}</p>
-              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {aiAnalysis.suggestions?.map((s, i) => (
-                  <div key={i} style={{ padding: '8px 12px', background: '#FFF8E7', border: '1px solid var(--pnb-gold)', borderRadius: '8px', fontSize: '11px' }}>
-                    <b>{s.issue}:</b> {s.alternative}
+          {/* ── Three Pillar Cards ───────────────────────────────────── */}
+          <div className="triad-grid">
+            {Object.keys(findings).map((pillar) => {
+              const meta = pillarMeta[pillar];
+              return (
+                <div key={pillar} className={`pillar-card ${meta.class}`}>
+                  <div className="pc-tag">{meta.icon} {meta.tag}</div>
+                  <div className="pc-title">{meta.title}</div>
+                  <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '10px', fontFamily: 'var(--mono)' }}>{meta.subtitle}</div>
+                  <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '6px', fontFamily: 'var(--mono)', letterSpacing: '1px' }}>QVS: {riskScores[pillar]}/100</div>
+                  <div className="pc-findings">
+                    {findings[pillar].map((f, i) => (
+                      <div key={i} className="pc-finding">
+                        <div className={`pf-sev sev-${f.severity === 'critical' || f.severity === 'high' ? 'danger' : f.severity === 'info' ? 'safe' : 'warn'}`}></div>
+                        <div>
+                          <div style={{ fontSize: '11px', marginBottom: '2px', fontWeight: f.severity === 'critical' ? 700 : 500 }}>
+                            {f.severity === 'critical' ? '🚨' : f.severity === 'high' ? '⚠' : f.severity === 'info' ? 'ℹ' : '⚠'} {f.issue}
+                          </div>
+                          <div style={{ fontFamily: 'var(--mono)', fontSize: '9px', opacity: 0.7, marginBottom: '3px' }}>{f.detail}</div>
+                          {f.recommendation && (
+                            <div style={{ fontSize: '9px', opacity: 0.9, background: 'rgba(255,255,255,0.1)', padding: '4px 6px', borderRadius: '4px', borderLeft: '2px solid rgba(255,255,255,0.4)' }}>
+                              💡 {f.recommendation}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── CBOM Preview ─────────────────────────────────────────── */}
+          {cbom && (
+            <div className="card" style={{ borderLeft: '4px solid var(--pnb-gold)' }}>
+              <div className="card-title" style={{ fontSize: '13px' }}><span className="ct-icon">📦</span> Unified CBOM (CycloneDX v1.5)</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginBottom: '10px', fontFamily: 'var(--mono)' }}>
+                Serial: {cbom.serialNumber} | Spec: {cbom.specVersion}
+              </div>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Component</th>
+                    <th>Crypto</th>
+                    <th>Quantum-Safe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cbom.components?.map((c, i) => (
+                    <tr key={i}>
+                      <td><span className={`risk-badge ${c.type === 'application' ? 'rb-high' : c.type === 'network-appliance' ? 'rb-medium' : 'rb-critical'}`}>{c.type}</span></td>
+                      <td style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>{c.name}</td>
+                      <td style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: '#C0272D', fontWeight: 600 }}>{c.crypto}</td>
+                      <td>{c.quantumSafe ? <span className="pqc-yes">✅</span> : <span className="pqc-no">❌</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ── Triad-Specific Remediation ───────────────────────────── */}
+          {remediation.length > 0 && (
+            <div className="card">
+              <div className="card-title" style={{ fontSize: '13px' }}><span className="ct-icon">🔧</span> Triad-Specific Auto-Remediation</div>
+              <div className="remed-grid">
+                {remediation.map((r, i) => (
+                  <RemediationCard key={i} data={r} />
                 ))}
               </div>
             </div>
           )}
 
-          <div className="grid-2" style={{ marginBottom: '14px' }}>
-            <div className="card" style={{ margin: 0 }}>
-              <div className="card-title" style={{ fontSize: '13px' }}>Quantum Risk Assessment</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--disp)', fontSize: '64px', fontWeight: 700, color: '#C0272D', lineHeight: 1, textShadow: '0 0 30px rgba(192,39,45,.3)' }}>9.4</div>
-                  <div style={{ fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--text-dim)', letterSpacing: '2px' }}>QUANTUM RISK / 10</div>
-                  <div style={{ marginTop: '8px', padding: '4px 16px', border: '1px solid rgba(192,39,45,.5)', color: '#C0272D', fontFamily: 'var(--mono)', fontSize: '11px', display: 'inline-block' }}>CRITICAL</div>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ marginBottom: '8px' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}><span>WEB / TLS</span><span style={{ color: '#C0272D', fontWeight: 700 }}>8.8</span></div><div className="prog-bar"><div className="prog-fill pf-red" style={{ width: '88%' }}></div></div></div>
-                  <div style={{ marginBottom: '8px' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}><span>VPN / TLS</span><span style={{ color: '#C0272D', fontWeight: 700 }}>9.5</span></div><div className="prog-bar"><div className="prog-fill pf-red" style={{ width: '95%' }}></div></div></div>
-                  <div><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}><span>API / JWT</span><span style={{ color: '#C0272D', fontWeight: 700 }}>10.0</span></div><div className="prog-bar"><div className="prog-fill pf-red" style={{ width: '100%' }}></div></div></div>
-                </div>
-              </div>
-            </div>
-            <ApiMetrics data={apiMetrics} />
-          </div>
-          <div className="jwt-sandbox">
-            <div className="card-title" style={{ fontSize: '13px' }}>JWT Quantum Analysis Sandbox</div>
-            <textarea className="jwt-input-area" placeholder="Paste JWT token here..." defaultValue="eyJhbGciOiJSUzI1NiIs..."></textarea>
+          {/* ── JWT Sandbox ───────────────────────────────────────────── */}
+          <div className="jwt-sandbox card">
+            <div className="card-title" style={{ fontSize: '13px' }}><span className="ct-icon">🔍</span> JWT Quantum Analysis Sandbox</div>
+            <textarea className="form-input" placeholder="Paste JWT token here..." defaultValue="eyJhbGciOiJSUzI1NiIs..." style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }}></textarea>
             <button className="btn btn-red btn-sm" style={{ marginTop: '8px' }}>🔍 Analyze Token</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Remediation Card Sub-component ──────────────────────────────────────── */
+const RemediationCard = ({ data }) => {
+  const [open, setOpen] = useState(false);
+  const pillarColors = { web: '#1A6ACC', vpn: '#CC8A1A', api: '#1ACC5A' };
+  const color = pillarColors[data.pillar] || 'var(--pnb-gold)';
+
+  return (
+    <div className="remed-card" style={{ borderLeft: `4px solid ${color}` }}>
+      <div className="remed-header" onClick={() => setOpen(!open)} style={{ borderLeftColor: color }}>
+        <div>
+          <div style={{ fontFamily: 'var(--disp)', fontSize: '14px', fontWeight: 700, color: 'var(--pnb-red)' }}>{data.title}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>{data.summary}</div>
+        </div>
+        <span style={{ fontSize: '18px', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▼</span>
+      </div>
+      {open && (
+        <div className="remed-body open">
+          <div className="code-snippet">
+            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{data.code}</pre>
           </div>
         </div>
       )}
