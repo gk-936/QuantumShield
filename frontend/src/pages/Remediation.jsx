@@ -9,7 +9,7 @@ const Remediation = () => {
   const [openIndex, setOpenIndex] = useState(0);
 
   // Chat State
-  const [messages, setMessages] = useState([{ role: 'model', content: "Hello! I am the QuantumShield PQC Expert. How can I help you secure PNB's infrastructure today?" }]);
+  const [messages, setMessages] = useState([{ role: 'model', content: "Hello! I am the Qubit-Guard PQC Expert. How can I help you secure PNB's infrastructure today?" }]);
   const [chatValue, setChatValue] = useState('');
   const [isChatting, setIsChatting] = useState(false);
   const chatEndRef = useRef(null);
@@ -103,7 +103,7 @@ const Remediation = () => {
 
         {/* AI Expert Chat Section */}
         <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-            <div className="card-title" style={{ fontSize: '15px' }}>💬 QuantumShield AI Expert Chat</div>
+            <div className="card-title" style={{ fontSize: '15px' }}>💬 Qubit-Guard AI Expert Chat</div>
             <div className="chat-container" style={{ background: '#f9f9f9', borderRadius: '8px', padding: '15px', height: '300px', overflowY: 'auto', marginBottom: '15px', border: '1px solid #eee' }}>
                 {messages.map((m, i) => (
                     <div key={i} style={{ marginBottom: '12px', textAlign: m.role === 'user' ? 'right' : 'left' }}>

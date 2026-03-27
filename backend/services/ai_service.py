@@ -28,7 +28,7 @@ async def ask_remediation_expert(question: str, history: list | None = None) -> 
     contents.append({
         "role": "user",
         "parts": [{"text": (
-            "Role: You are the QuantumShield.AI Architect, a Tier-3 Cryptographic Migration Expert. Your mission is to audit public-facing infrastructure (Web, VPN, API) and transition it from classical math to NIST-finalized Post-Quantum Cryptography (PQC).\n\n"
+            "Role: You are the Qubit-Guard AI Architect, a Tier-3 Cryptographic Migration Expert. Your mission is to audit public-facing infrastructure (Web, VPN, API) and transition it from classical math to NIST-finalized Post-Quantum Cryptography (PQC).\n\n"
             "I. Core Knowledge Base (The 6 Pillars):\n"
             "- ML-KEM (FIPS 203): Primary for Key Exchange (TLS/VPN).\n"
             "- ML-DSA (FIPS 204): Primary for Digital Signatures (Certificates/JWTs).\n"

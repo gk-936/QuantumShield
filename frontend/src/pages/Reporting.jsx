@@ -6,6 +6,7 @@ const Reporting = () => {
   const [isScheduled, setIsScheduled] = useState(false);
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
+  const [formats, setFormats] = useState({ pdf: true, excel: false, json: false });
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -14,7 +15,8 @@ const Reporting = () => {
     }
     setSending(true);
     try {
-      const response = await sendEmailReport({ email, reportType });
+      const selectedFormats = Object.keys(formats).filter(k => formats[k]);
+      const response = await sendEmailReport({ email, reportType, formats: selectedFormats });
       if (response.data.success) {
         if (response.data.simulated) {
           alert(`[SIMULATION MODE] The report for ${email} has been generated and logged to the server console. To send real emails, please configure SMTP credentials in the backend .env file.`);
@@ -70,9 +72,15 @@ const Reporting = () => {
             <div className="form-group">
               <label className="form-label" style={{ color: '#1A5ACC', fontWeight: 700 }}>1. CHOOSE OUTPUT FORMATS</label>
               <div className="checkbox-group" style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
-                <label className="checkbox-item"><input type="checkbox" defaultChecked /> PDF (Standard)</label>
-                <label className="checkbox-item"><input type="checkbox" /> Excel (.xlsx)</label>
-                <label className="checkbox-item"><input type="checkbox" /> JSON (CycloneDX)</label>
+                <label className="checkbox-item">
+                  <input type="checkbox" checked={formats.pdf} onChange={e => setFormats({...formats, pdf: e.target.checked})} /> PDF (Standard)
+                </label>
+                <label className="checkbox-item">
+                  <input type="checkbox" checked={formats.excel} onChange={e => setFormats({...formats, excel: e.target.checked})} /> Excel (.xlsx)
+                </label>
+                <label className="checkbox-item">
+                  <input type="checkbox" checked={formats.json} onChange={e => setFormats({...formats, json: e.target.checked})} /> JSON (CycloneDX)
+                </label>
               </div>
             </div>
             <div className="form-group" style={{ marginTop: '20px' }}>

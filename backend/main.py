@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     seed()
     print("""
-    🚀 QuantumShield.AI Backend is up!
+    🚀 Qubit-Guard.AI Backend is up!
     📡 Framework: FastAPI + Uvicorn
     🛡️  PQC Scanning Engine: ONLINE (Deterministic)
     🗄️  Storage: SQLite via SQLAlchemy
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="QuantumShield.AI",
+    title="Qubit-Guard.AI",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -51,7 +51,7 @@ app.add_middleware(
 def health():
     from datetime import datetime
     return {
-        "status": "QuantumShield AI Backend v2.0 Active",
+        "status": "Qubit-Guard AI Backend v2.0 Active",
         "pqc_engine": "Ready (Deterministic)",
         "storage": "SQLite",
         "timestamp": datetime.utcnow().isoformat(),

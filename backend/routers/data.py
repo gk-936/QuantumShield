@@ -16,6 +16,7 @@ from pydantic import BaseModel
 class EmailRequest(BaseModel):
     email: str
     reportType: str
+    formats: list[str] = []
 
 router = APIRouter()
 
@@ -153,7 +154,8 @@ def send_report(req: EmailRequest, db: Session = Depends(get_db)):
     overall_qvs = 85  # Default or fetched from posture
     findings = {
         "riskScores": {"overall": overall_qvs},
-        "reportType": req.reportType
+        "reportType": req.reportType,
+        "formats": req.formats
     }
     
     # Check if SMTP is configured

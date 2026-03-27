@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getDashboardData } from '../api';
+import { useNavigate } from 'react-router-dom';
 
 const QDaySimulator = () => {
   const [progress, setProgress] = useState({ harvest: 0, qday: 0, decrypt: 0 });
   const [status, setStatus] = useState('Standby');
   const [tte, setTte] = useState(null); // Time To Exposure (years)
   const [vulnCount, setVulnCount] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -165,7 +167,7 @@ const QDaySimulator = () => {
               <button 
                 className="btn btn-gold btn-sm" 
                 style={{ width: '100%', marginTop: '20px' }}
-                onClick={() => window.location.href = '/triad'}
+                onClick={() => navigate('/triad')}
               >
                 ⚡ Harden My Infrastructure Now
               </button>

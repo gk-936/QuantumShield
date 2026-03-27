@@ -19,7 +19,7 @@ const Layout = ({ onLogout }) => {
     '/mobile': 'Mobile App Scanning'
   };
 
-  const currentTitle = pageTitles[location.pathname] || 'QuantumShield.AI';
+  const currentTitle = pageTitles[location.pathname] || 'Qubit-Guard Platform';
 
   return (
     <div id="app">
@@ -32,7 +32,7 @@ const Layout = ({ onLogout }) => {
         </div>
         <div id="footer-bar">
           <span>15/03/2026</span>
-          <span>PSB Hackathon 2026 — QuantumShield.AI by trust_x | Amrita Vishwa Vidyapeetham</span>
+          <span>PSB Hackathon 2026 — Qubit-Guard Platform by trust_x | Amrita Vishwa Vidyapeetham</span>
           <span>v1.0</span>
         </div>
       </div>

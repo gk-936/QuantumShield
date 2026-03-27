@@ -24,6 +24,10 @@ function App() {
   const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
+    document.title = "Qubit-Guard Platform";
+  }, []);
+
+  useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('pnc_token');
       if (token) {
@@ -83,7 +87,7 @@ function App() {
                 <path d="M34 30L38 34L47 25" stroke="#D4A017" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <div className="login-title">QuantumShield.AI</div>
+            <div className="login-title">Qubit-Guard Platform</div>
           </div>
           <label className="login-label">Username</label>
           <input className="login-input" type="text" value={u} onChange={(e) => setU(e.target.value)} />
