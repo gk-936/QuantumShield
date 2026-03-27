@@ -51,68 +51,83 @@ const QDaySimulator = () => {
   }, [status]);
 
   return (
-    <div id="page-qday" className="page-view" style={{ background: '#050510', borderRadius: '12px', padding: '20px' }}>
-      <div className="card" style={{ background: 'rgba(10, 10, 30, 0.8)', border: '1px solid #C0272D', boxShadow: '0 0 40px rgba(192, 39, 45, 0.2)' }}>
-        <div className="card-title" style={{ color: '#FF4444', textShadow: '0 0 10px rgba(255,68,68,0.5)' }}>☢️ HNDL Threat Simulator & Exposure Model</div>
-        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div className="stat-chip danger" style={{ flex: 1, background: 'rgba(192, 39, 45, 0.1)', border: '1px solid #C0272D' }}>
-                <div className="sc-val" style={{ color: '#FF4444' }}>{tte || 'Calculating...'} Years</div>
-                <div className="sc-lbl" style={{ color: 'rgba(255,255,255,0.7)' }}>Est. Time to Exposure (TTE)</div>
+    <div id="page-qday" className="page-view">
+      <div className="card" style={{ borderTop: '4px solid #C0272D' }}>
+        <div className="card-title" style={{ color: '#C0272D', marginBottom: '24px' }}>☢️ HNDL Threat Simulator & Exposure Model</div>
+        <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
+            <div className="stat-chip danger" style={{ flex: 1, minWidth: '200px' }}>
+                <div className="sc-val" style={{ color: '#C0272D' }}>{tte || 'Calculating...'} Years</div>
+                <div className="sc-lbl">Est. Time to Exposure (TTE)</div>
             </div>
-            <div className="stat-chip info" style={{ flex: 1, background: 'rgba(26, 107, 170, 0.1)', border: '1px solid #1A6BAA' }}>
-                <div className="sc-val" style={{ color: '#4A90D9' }}>{vulnCount.toLocaleString()}</div>
-                <div className="sc-lbl" style={{ color: 'rgba(255,255,255,0.7)' }}>Vulnerable Data Points</div>
+            <div className="stat-chip info" style={{ flex: 1, minWidth: '200px' }}>
+                <div className="sc-val" style={{ color: '#1A6BAA' }}>{vulnCount.toLocaleString()}</div>
+                <div className="sc-lbl">Vulnerable Data Points</div>
             </div>
         </div>
-        <p style={{ fontSize: '13px', color: '#AAA', marginBottom: '20px', lineHeight: '1.6' }}>
-            PNB's current "Cyber Posture" suggests a <b style={{ color: '#FF4444' }}>Harvest-Now-Decrypt-Later</b> exposure horizon of <b style={{ color: '#FF4444' }}>{tte} years</b>. 
+        <p style={{ fontSize: '14px', color: '#7A5A30', marginBottom: '30px', lineHeight: '1.8', background: '#FFF3D4', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #C0272D' }}>
+            PNB's current "Cyber Posture" suggests a <b style={{ color: '#C0272D' }}>Harvest-Now-Decrypt-Later</b> exposure horizon of <b style={{ color: '#C0272D' }}>{tte} years</b>. 
             Cryptographic assets identified in the inventory are being stored by adversaries for retroactive decryption once a CRQC is realized.
         </p>
         
         <div className="qday-phases">
           <div className="qday-phase" style={{ 
-            opacity: status === 'Standby' ? 0.3 : 1, 
-            background: 'linear-gradient(90deg, #1A1A1A, #2A2A2A)',
-            borderLeft: '4px solid #FFA500',
-            marginBottom: '15px',
-            padding: '20px'
+            opacity: status === 'Standby' ? 0.6 : 1, 
+            background: '#FFF8E7',
+            borderLeft: '5px solid #C8860A',
+            marginBottom: '16px',
+            padding: '20px',
+            borderRadius: '10px',
+            border: '1px solid #FAECD4',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 8px rgba(100,30,0,0.08)'
           }}>
-            <div className="phase-tag" style={{ color: '#FFA500' }}>PHASE 01 — PRESENT DAY</div>
-            <div className="phase-title" style={{ color: '#FFF' }}>Data Harvesting (Eavesdropping)</div>
-            <div className="phase-desc" style={{ color: '#888' }}>Intercepting and storing {vulnCount.toLocaleString()} RSA/ECC encrypted sessions.</div>
-            <div className="phase-prog-wrap" style={{ height: '6px', background: '#333', marginTop: '10px' }}><div className="phase-prog-fill" style={{ width: `${progress.harvest}%`, height: '100%', background: '#FFA500', boxShadow: '0 0 10px #FFA500' }}></div></div>
+            <div className="phase-tag" style={{ color: '#C8860A', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>PHASE 01 — PRESENT DAY</div>
+            <div className="phase-title" style={{ color: '#2C1A00', fontSize: '16px', fontWeight: '600', marginBottom: '10px' }}>📊 Data Harvesting (Eavesdropping)</div>
+            <div className="phase-desc" style={{ color: '#7A5A30', marginBottom: '12px', fontSize: '13px' }}>Intercepting and storing {vulnCount.toLocaleString()} RSA/ECC encrypted sessions.</div>
+            <div className="phase-prog-wrap" style={{ height: '6px', background: '#E8D9C4', borderRadius: '3px', overflow: 'hidden', marginTop: '12px' }}><div className="phase-prog-fill" style={{ width: `${progress.harvest}%`, height: '100%', background: '#C8860A', boxShadow: '0 0 8px rgba(200,134,10,0.4)', transition: 'width 0.2s ease' }}></div></div>
+            <div style={{ fontSize: '11px', color: '#C8860A', marginTop: '8px', textAlign: 'right', fontWeight: '600' }}>{progress.harvest}%</div>
           </div>
           <div className="qday-phase" style={{ 
-            opacity: status === 'Standby' ? 0.3 : 1, 
-            background: 'linear-gradient(90deg, #1A1A1A, #2A2A2A)',
-            borderLeft: '4px solid #FF4444',
-            marginBottom: '15px',
-            padding: '20px'
+            opacity: status === 'Standby' ? 0.6 : 1, 
+            background: '#FFF3F3',
+            borderLeft: '5px solid #C0272D',
+            marginBottom: '16px',
+            padding: '20px',
+            borderRadius: '10px',
+            border: '1px solid #F5D9DB',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 8px rgba(192,39,45,0.08)'
           }}>
-            <div className="phase-tag" style={{ color: '#FF4444' }}>PHASE 02 — THE "Q-DAY" EVENT</div>
-            <div className="phase-title" style={{ color: '#FFF' }}>Quantum Realization (CRQC)</div>
-            <div className="phase-desc" style={{ color: '#888' }}>Quantum hardware achieves ~20M physical qubits (Shor's Algorithm execution).</div>
-            <div className="phase-prog-wrap" style={{ height: '6px', background: '#333', marginTop: '10px' }}><div className="phase-prog-fill" style={{ width: `${progress.qday}%`, height: '100%', background: '#FF4444', boxShadow: '0 0 15px #FF4444' }}></div></div>
+            <div className="phase-tag" style={{ color: '#C0272D', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>PHASE 02 — THE "Q-DAY" EVENT</div>
+            <div className="phase-title" style={{ color: '#2C1A00', fontSize: '16px', fontWeight: '600', marginBottom: '10px' }}>⚡ Quantum Realization (CRQC)</div>
+            <div className="phase-desc" style={{ color: '#7A5A30', marginBottom: '12px', fontSize: '13px' }}>Quantum hardware achieves ~20M physical qubits (Shor's Algorithm execution).</div>
+            <div className="phase-prog-wrap" style={{ height: '6px', background: '#EDD5D7', borderRadius: '3px', overflow: 'hidden', marginTop: '12px' }}><div className="phase-prog-fill" style={{ width: `${progress.qday}%`, height: '100%', background: '#C0272D', boxShadow: '0 0 8px rgba(192,39,45,0.4)', transition: 'width 0.2s ease' }}></div></div>
+            <div style={{ fontSize: '11px', color: '#C0272D', marginTop: '8px', textAlign: 'right', fontWeight: '600' }}>{progress.qday}%</div>
           </div>
           <div className="qday-phase" style={{ 
-            opacity: status === 'Standby' ? 0.3 : 1, 
-            background: 'linear-gradient(90deg, #1A1A1A, #2A2A2A)',
-            borderLeft: '4px solid #CC44CC',
-            padding: '20px'
+            opacity: status === 'Standby' ? 0.6 : 1, 
+            background: '#F5F3FA',
+            borderLeft: '5px solid #6B4D9C',
+            padding: '20px',
+            borderRadius: '10px',
+            border: '1px solid #E8DFF3',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 8px rgba(107,77,156,0.08)'
           }}>
-            <div className="phase-tag" style={{ color: '#CC44CC' }}>PHASE 03 — POST-QUANTUM ERA</div>
-            <div className="phase-title" style={{ color: '#FFF' }}>Retroactive Decryption</div>
-            <div className="phase-desc" style={{ color: '#888' }}>Historical banking records, PII, and trade secrets are exposed in approximately 0.4 seconds per key.</div>
-            <div className="phase-prog-wrap" style={{ height: '6px', background: '#333', marginTop: '10px' }}><div className="phase-prog-fill" style={{ width: `${progress.decrypt}%`, height: '100%', background: '#CC44CC', boxShadow: '0 0 15px #CC44CC' }}></div></div>
+            <div className="phase-tag" style={{ color: '#6B4D9C', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>PHASE 03 — POST-QUANTUM ERA</div>
+            <div className="phase-title" style={{ color: '#2C1A00', fontSize: '16px', fontWeight: '600', marginBottom: '10px' }}>🔓 Retroactive Decryption</div>
+            <div className="phase-desc" style={{ color: '#7A5A30', marginBottom: '12px', fontSize: '13px' }}>Historical banking records, PII, and trade secrets are exposed in approximately 0.4 seconds per key.</div>
+            <div className="phase-prog-wrap" style={{ height: '6px', background: '#E4DCED', borderRadius: '3px', overflow: 'hidden', marginTop: '12px' }}><div className="phase-prog-fill" style={{ width: `${progress.decrypt}%`, height: '100%', background: '#6B4D9C', boxShadow: '0 0 8px rgba(107,77,156,0.4)', transition: 'width 0.2s ease' }}></div></div>
+            <div style={{ fontSize: '11px', color: '#6B4D9C', marginTop: '8px', textAlign: 'right', fontWeight: '600' }}>{progress.decrypt}%</div>
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '30px' }}>
-          <button className="btn btn-red" onClick={startSimulation} disabled={status === 'Active'} style={{ padding: '15px 40px', fontSize: '16px', boxShadow: '0 0 30px rgba(192,39,45,0.4)' }}>
+        <div style={{ textAlign: 'center', marginTop: '35px' }}>
+          <button className="btn btn-red" onClick={startSimulation} disabled={status === 'Active'} style={{ padding: '13px 40px', fontSize: '14px', fontWeight: '600', letterSpacing: '1px', opacity: status === 'Active' ? 0.6 : 1, cursor: status === 'Active' ? 'not-allowed' : 'pointer' }}>
             {status === 'Active' ? '☣️ SIMULATING ATTACK...' : '💥 RUN HNDL ATTACK SIMULATION'}
           </button>
-          <div style={{ marginTop: '20px', fontFamily: 'var(--mono)', fontSize: '14px', color: status === 'Active' ? '#FF4444' : (status.includes('Complete') ? '#00FF88' : '#666'), letterSpacing: '2px' }}>
-            SYSTEM-STATUS: {status.toUpperCase()}
+          <div style={{ marginTop: '16px', fontFamily: 'var(--mono)', fontSize: '12px', color: status === 'Active' ? '#C0272D' : (status.includes('Complete') ? '#1A8A1A' : '#7A5A30'), letterSpacing: '2px', fontWeight: '600', textTransform: 'uppercase' }}>
+            ⚙️ {status}
           </div>
         </div>
       </div>
