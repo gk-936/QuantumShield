@@ -28,9 +28,9 @@ Create or update the `backend/.env` file with the following credentials to enabl
 ```env
 PORT=5006
 GEMINI_API_KEY=YOUR_GOOGLE_GEMINI_API_KEY
-SMTP_USER=fiveoctaves8@gmail.com
+SMTP_USER=YOUR_EMAIL_ADDRESS@EMAIL.com
 # Use Gmail App Password (16 characters, no spaces)
-SMTP_PASS=bnufxigcfwdvdktv
+SMTP_PASS=
 ```
 
 ## 4. Frontend Setup
