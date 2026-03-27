@@ -330,7 +330,14 @@ html,body{height:100%;font-family:var(--body);font-size:14px;overflow:hidden;}
 
 /* Score Display */
 .score-display{ background:linear-gradient(135deg,#1A2840,#2A4060); border-radius:16px;padding:24px 32px;text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:20px; }
-.score-num{ font-family:'Cinzel',serif;font-size:80px;font-weight:700; background:linear-gradient(135deg,var(--pnb-gold),var(--pnb-gold2)); -webkit-background-clip:text;-webkit-text-fill-color:transparent; line-height:1; }
+.score-num{ 
+  font-family:'Cinzel',serif;font-size:80px;font-weight:700; 
+  background:linear-gradient(135deg,var(--pnb-gold),var(--pnb-gold2)); 
+  -webkit-background-clip:text;
+  background-clip: text;
+  -webkit-text-fill-color:transparent; 
+  line-height:1; 
+}
 .score-label{ display:inline-block;margin-top:8px;padding:6px 20px; background:linear-gradient(135deg,#2A8A2A,#4ACC4A); border-radius:20px;font-family:var(--disp);font-size:16px;font-weight:700; color:#fff;letter-spacing:1px; }
 
 /* Remediation */
@@ -379,3 +386,38 @@ html,body{height:100%;font-family:var(--body);font-size:14px;overflow:hidden;}
   border: 1px solid rgba(200,134,10,0.15);
 }
 
+/* ── Asset Inventory Specific ────────────────────────────────────── */
+#page-inventory { padding-top: 10px; }
+
+.inv-stats { 
+  display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; 
+}
+.inv-stat { 
+  background: white; border-radius: 12px; padding: 16px 20px; 
+  box-shadow: 0 8px 30px rgba(100,30,0,0.1); border-left: 5px solid var(--pnb-gold);
+  min-width: 170px; transition: all 0.2s ease;
+  border-top: 1px solid rgba(200,134,10,0.1);
+}
+.inv-stat:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(100,30,0,0.15); }
+
+.inv-stat .is-val { 
+  font-family: var(--disp); font-size: 32px; font-weight: 700; 
+  color: var(--pnb-red); line-height: 1; margin-bottom: 4px;
+}
+.inv-stat .is-lbl { 
+  font-size: 10px; color: var(--text-dim); font-weight: 700; 
+  text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8;
+}
+
+.inv-stat.info { border-left-color: #1A5ACC; }
+.inv-stat.info .is-val { color: #1A5ACC; }
+
+.inv-stat.warn { border-left-color: #D47800; }
+.inv-stat.warn .is-val { color: #D47800; }
+
+.inv-stat.danger { border-left-color: #C0272D; }
+.inv-stat.danger .is-val { color: #C0272D; }
+
+/* Enhanced Table Contrast */
+.data-table td { color: #1A1A1A; font-weight: 500; }
+.data-table tr:hover td { background: rgba(200,134,10,0.08); }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,6 +25,7 @@ export const scanMobileApp = (data) => api.post('/mobile/scan', data);
 
 export const getDashboardData = () => api.get('/data/dashboard');
 export const getInventoryData = () => api.get('/data/inventory');
+export const deleteInventoryItem = (purl) => api.delete(`/data/inventory/${purl}`);
 export const getCbomData = () => api.get('/data/cbom');
 
 export const login = (credentials) => api.post('/auth/login', credentials);

@@ -63,6 +63,16 @@ def get_inventory(db: Session = Depends(get_db)):
     return {"success": True, "data": data}
 
 
+@router.delete("/inventory/{purl}")
+def delete_asset(purl: str, db: Session = Depends(get_db)):
+    item = db.query(CbomItem).filter(CbomItem.purl == purl).first()
+    if item:
+        db.delete(item)
+        db.commit()
+        return {"success": True, "message": f"Asset {purl} removed successfully."}
+    return JSONResponse(status_code=404, content={"success": False, "message": "Asset not found."})
+
+
 @router.get("/cbom")
 def get_cbom(db: Session = Depends(get_db)):
     items = db.query(CbomItem).all()
