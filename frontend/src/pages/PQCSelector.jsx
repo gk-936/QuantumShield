@@ -162,13 +162,13 @@ const PQCSelector = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #0284c722, #9333ea22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🧠</div>
         <div>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-main)' }}>PQC Smart Selector</h2>
-          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-dim)', fontFamily: 'var(--mono)' }}>ML-Based Algorithm Selection Engine • Sovereign Indian Dataset • DST PQC Roadmap 2026</p>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>PQC Smart Selector</h2>
+          <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--mono)' }}>ML-Based Algorithm Selection Engine • Sovereign Indian Dataset • DST PQC Roadmap 2026</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '4px' }}>
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'rgba(0,0,0,0.15)', borderRadius: '10px', padding: '4px', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.1)' }}>
         {[
           { id: 'selector', label: '🧠 ML Selector', badge: 'AI' },
           { id: 'registry', label: '📦 Algorithm Registry' },
@@ -178,12 +178,12 @@ const PQCSelector = () => {
             style={{
               flex: 1, padding: '10px 16px', border: 'none', borderRadius: '8px', cursor: 'pointer',
               fontFamily: 'var(--mono)', fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
-              background: activeTab === tab.id ? 'rgba(2,132,199,0.15)' : 'transparent',
-              color: activeTab === tab.id ? '#0284c7' : 'rgba(0,0,0,0.5)',
-              border: activeTab === tab.id ? '1px solid rgba(2,132,199,0.3)' : '1px solid transparent',
+              background: activeTab === tab.id ? 'rgba(255,255,255,0.95)' : 'transparent',
+              color: activeTab === tab.id ? 'var(--pnb-red)' : 'rgba(255,255,255,0.75)',
+              boxShadow: activeTab === tab.id ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
             }}>
             {tab.label}
-            {tab.badge && <span style={{ marginLeft: '6px', background: '#9333ea33', color: '#9333ea', padding: '1px 6px', borderRadius: '6px', fontSize: '9px' }}>{tab.badge}</span>}
+            {tab.badge && <span style={{ marginLeft: '6px', background: activeTab === tab.id ? '#9333ea33' : 'rgba(255,255,255,0.2)', color: activeTab === tab.id ? '#9333ea' : '#fff', padding: '1px 6px', borderRadius: '6px', fontSize: '9px' }}>{tab.badge}</span>}
           </button>
         ))}
       </div>
