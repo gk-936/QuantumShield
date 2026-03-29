@@ -43,7 +43,8 @@ def seed():
 
     # ---------- Posture Stats ----------
     if not db.query(PostureStat).first():
-        for metric, val in [("mlKemAdoption", 33), ("mlDsaTransition", 22), ("legacyRemoval", 8)]:
+        for metric, val in [("mlKemAdoption", 33), ("mlDsaTransition", 22), ("legacyRemoval", 8),
+                            ("slhDsaBackup", 5), ("fnDsaMobile", 3), ("xmssLmsFirmware", 2), ("bikeHqcArchival", 1)]:
             db.add(PostureStat(metric=metric, value=val))
 
     # ---------- CBOM Vulnerability Summary ----------
@@ -62,6 +63,11 @@ def seed():
             ("strongSwan", "5.9.11", "IKEv2-RSA", False, "Critical", "VPN", "pkg:generic/strongswan@5.9.11"),
             ("AWS ACM", "2024", "RSA-2048", False, "High", "Certificate", "pkg:generic/aws-acm@2024"),
             ("Istio", "1.20", "mTLS-ECDSA", False, "Medium", "Service Mesh", "pkg:generic/istio@1.20"),
+            ("liboqs-sphincs", "0.9.0", "SLH-DSA-128f", True, "Safe", "PQC Signatures", "pkg:generic/liboqs-sphincs@0.9.0"),
+            ("liboqs-falcon", "0.9.0", "FN-DSA-512", True, "Safe", "PQC Mobile", "pkg:generic/liboqs-falcon@0.9.0"),
+            ("hash-sigs", "1.0.0", "XMSS-SHA2_10_256", True, "Safe", "Firmware", "pkg:generic/hash-sigs@1.0.0"),
+            ("liboqs-bike", "0.9.0", "BIKE-L1", True, "Safe", "Archival KEM", "pkg:generic/liboqs-bike@0.9.0"),
+            ("liboqs-hqc", "0.9.0", "HQC-128", True, "Safe", "Archival KEM", "pkg:generic/liboqs-hqc@0.9.0"),
         ]
         for comp, ver, alg, qs, risk, cat, purl in items:
             db.add(CbomItem(

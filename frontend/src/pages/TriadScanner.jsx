@@ -5,8 +5,9 @@ import { runTriadScan as apiRunScan, chatWithExpert } from '../api';
 const TriadScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [findings, setFindings] = useState({ web: [], vpn: [], api: [] });
-  const [riskScores, setRiskScores] = useState({ web: 0, vpn: 0, api: 0, overall: 0 });
+  const [findings, setFindings] = useState({ web: [], vpn: [], api: [], firmware: [], archival: [] });
+  const [riskScores, setRiskScores] = useState({ web: 0, vpn: 0, api: 0, firmware: 0, archival: 0, overall: 0 });
+  const [selectorLog, setSelectorLog] = useState(null);
   const [apiMetrics, setApiMetrics] = useState(null);
   const [cbom, setCbom] = useState(null);
   const [remediation, setRemediation] = useState([]);
@@ -50,10 +51,11 @@ const TriadScanner = () => {
       if (response.data.success) {
         const result = response.data.data;
         setFindings(result.findings);
-        setRiskScores(result.riskScores || { web: 0, vpn: 0, api: 0, overall: 0 });
+        setRiskScores(result.riskScores || { web: 0, vpn: 0, api: 0, firmware: 0, archival: 0, overall: 0 });
         setApiMetrics(result.apiMetrics);
         setCbom(result.cbom);
         setRemediation(result.remediation || []);
+        setSelectorLog(result.selectorLog || null);
         setShowResults(true);
       }
     } catch (err) {
@@ -69,6 +71,8 @@ const TriadScanner = () => {
     web: { tag: 'WEB PILLAR', title: 'TLS Certificate Engine', subtitle: 'Web Server Cryptanalysis', class: 'pillar-a', icon: '🌐' },
     vpn: { tag: 'VPN PILLAR', title: 'VPN/TLS Gateway Engine', subtitle: 'Gateway Protocol Analysis', class: 'pillar-b', icon: '🔒' },
     api: { tag: 'API PILLAR', title: 'API Security Engine', subtitle: 'JWT & mTLS Analysis', class: 'pillar-c', icon: '⚡' },
+    firmware: { tag: 'FIRMWARE PILLAR', title: 'Firmware Integrity Engine', subtitle: 'XMSS/LMS Signing Analysis', class: 'pillar-d', icon: '🔧' },
+    archival: { tag: 'ARCHIVAL PILLAR', title: 'Archival Encryption Engine', subtitle: 'BIKE/HQC KEM Analysis', class: 'pillar-e', icon: '🗄️' },
   };
 
   const qvsColor = (score) => {
@@ -147,11 +151,11 @@ const TriadScanner = () => {
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  {['web', 'vpn', 'api'].map((p) => (
+                  {['web', 'vpn', 'api', 'firmware', 'archival'].map((p) => (
                     <div key={p} style={{ marginBottom: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
-                        <span>{p === 'web' ? 'WEB / TLS' : p === 'vpn' ? 'VPN / TLS' : 'API / JWT'}</span>
-                        <span style={{ color: qvsColor(riskScores[p]), fontWeight: 700 }}>{riskScores[p]}</span>
+                        <span>{p === 'web' ? 'WEB / TLS' : p === 'vpn' ? 'VPN / TLS' : p === 'api' ? 'API / JWT' : p === 'firmware' ? 'FIRMWARE' : 'ARCHIVAL'}</span>
+                        <span style={{ color: qvsColor(riskScores[p] || 0), fontWeight: 700 }}>{riskScores[p] || 0}</span>
                       </div>
                       <div className="prog-bar">
                         <div className="prog-fill pf-red" style={{ width: `${riskScores[p]}%`, background: `linear-gradient(90deg, ${qvsColor(riskScores[p])}, ${qvsColor(riskScores[p])}AA)` }}></div>
@@ -166,7 +170,7 @@ const TriadScanner = () => {
 
           {/* ── Three Pillar Cards ───────────────────────────────────── */}
           <div className="triad-grid">
-            {Object.keys(findings).map((pillar) => {
+            {Object.keys(findings).filter(pillar => pillarMeta[pillar]).map((pillar) => {
               const meta = pillarMeta[pillar];
               return (
                 <div key={pillar} className={`pillar-card ${meta.class}`}>
@@ -262,7 +266,7 @@ const TriadScanner = () => {
 /* ── Remediation Card Sub-component ──────────────────────────────────────── */
 const RemediationCard = ({ data }) => {
   const [open, setOpen] = useState(false);
-  const pillarColors = { web: '#1A6ACC', vpn: '#CC8A1A', api: '#1ACC5A' };
+  const pillarColors = { web: '#1A6ACC', vpn: '#CC8A1A', api: '#1ACC5A', api_backup: '#22c55e', mobile: '#f59e0b', firmware: '#ef4444', archival: '#ec4899' };
   const color = pillarColors[data.pillar] || 'var(--pnb-gold)';
 
   return (

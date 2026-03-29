@@ -8,8 +8,10 @@ from datetime import datetime
 
 def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url: str) -> dict:
     """
-    Generate a CycloneDX v1.5 CBOM reflecting the Triad scanning architecture.
-    Components are segmented by asset type: application (Web), network-appliance (VPN), library (API).
+    Generate a CycloneDX v1.5 CBOM reflecting the Triad+ scanning architecture.
+    Components are segmented by asset type: application (Web), network-appliance (VPN),
+    library (API), firmware (System), and data (Archival).
+    Includes NIST OIDs and FIPS standard references for all 6 PQC algorithm families.
     """
     components = [
         {
@@ -23,6 +25,10 @@ def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url
                 {"name": "quantum-shield:crypto-algorithm", "value": "RSA-2048"},
                 {"name": "quantum-shield:quantum-safe", "value": "false"},
                 {"name": "quantum-shield:key-exchange", "value": "ECDHE"},
+                {"name": "quantum-shield:fips-standard", "value": "N/A (Classical)"},
+                {"name": "quantum-shield:oid", "value": "1.2.840.113549.1.1.1"},
+                {"name": "quantum-shield:recommended-pqc", "value": "ML-KEM-768 (FIPS 203)"},
+                {"name": "quantum-shield:recommended-oid", "value": "1.3.6.1.4.1.2.267.12"},
             ]
         },
         {
@@ -36,6 +42,9 @@ def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url
                 {"name": "quantum-shield:crypto-algorithm", "value": "IKEv1-RSA-2048"},
                 {"name": "quantum-shield:quantum-safe", "value": "false"},
                 {"name": "quantum-shield:rfc9370", "value": "false"},
+                {"name": "quantum-shield:fips-standard", "value": "N/A (Classical)"},
+                {"name": "quantum-shield:recommended-pqc", "value": "ML-KEM-768 (FIPS 203) + RFC 9370"},
+                {"name": "quantum-shield:recommended-oid", "value": "1.3.6.1.4.1.2.267.12"},
             ]
         },
         {
@@ -49,6 +58,62 @@ def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url
                 {"name": "quantum-shield:crypto-algorithm", "value": "RS256"},
                 {"name": "quantum-shield:quantum-safe", "value": "false"},
                 {"name": "quantum-shield:mtls", "value": "ECDSA-P256"},
+                {"name": "quantum-shield:fips-standard", "value": "N/A (Classical)"},
+                {"name": "quantum-shield:recommended-pqc", "value": "ML-DSA-65 (FIPS 204)"},
+                {"name": "quantum-shield:recommended-oid", "value": "1.3.6.1.4.1.2.267.12"},
+                {"name": "quantum-shield:backup-pqc", "value": "SLH-DSA-128f (FIPS 205)"},
+                {"name": "quantum-shield:backup-oid", "value": "1.3.6.1.4.1.2.267.11"},
+            ]
+        },
+        {
+            "type": "library",
+            "name": f"Mobile Banking App (PNB ONE)",
+            "version": "4.2.0",
+            "crypto": "RSA-2048 (Hardcoded Key)",
+            "quantumSafe": False,
+            "properties": [
+                {"name": "quantum-shield:asset-type", "value": "Mobile/App"},
+                {"name": "quantum-shield:crypto-algorithm", "value": "RSA-2048"},
+                {"name": "quantum-shield:quantum-safe", "value": "false"},
+                {"name": "quantum-shield:fips-standard", "value": "N/A (Classical)"},
+                {"name": "quantum-shield:recommended-pqc", "value": "FN-DSA-512 (Falcon)"},
+                {"name": "quantum-shield:recommended-oid", "value": "1.3.9999.3.1"},
+                {"name": "quantum-shield:fips-status", "value": "Draft (Expected Late 2026)"},
+            ]
+        },
+        {
+            "type": "firmware",
+            "name": f"System Firmware / Secure Boot ({web_url})",
+            "version": "1.0",
+            "crypto": "RSA-2048 Code Signing",
+            "quantumSafe": False,
+            "properties": [
+                {"name": "quantum-shield:asset-type", "value": "System/Firmware"},
+                {"name": "quantum-shield:crypto-algorithm", "value": "RSA-2048"},
+                {"name": "quantum-shield:quantum-safe", "value": "false"},
+                {"name": "quantum-shield:fips-standard", "value": "N/A (Classical)"},
+                {"name": "quantum-shield:recommended-pqc", "value": "XMSS (RFC 8391) / LMS (RFC 8554)"},
+                {"name": "quantum-shield:recommended-oid", "value": "1.3.6.1.4.1.8301.3.1.3.5.1"},
+                {"name": "quantum-shield:nist-sp", "value": "NIST SP 800-208"},
+                {"name": "quantum-shield:state-management", "value": "Required (HSM-Backed Counter)"},
+            ]
+        },
+        {
+            "type": "data",
+            "name": f"Banking Data Archives / SWIFT Logs ({web_url})",
+            "version": "1.0",
+            "crypto": "AES-256-GCM + RSA-2048 Key Wrap",
+            "quantumSafe": False,
+            "properties": [
+                {"name": "quantum-shield:asset-type", "value": "Archival/Storage"},
+                {"name": "quantum-shield:crypto-algorithm", "value": "RSA-2048 (Key Wrapping)"},
+                {"name": "quantum-shield:symmetric-algorithm", "value": "AES-256-GCM (Quantum-Safe)"},
+                {"name": "quantum-shield:quantum-safe", "value": "false"},
+                {"name": "quantum-shield:fips-standard", "value": "N/A (Classical Key Wrap)"},
+                {"name": "quantum-shield:recommended-pqc", "value": "BIKE-L1 / HQC-128"},
+                {"name": "quantum-shield:recommended-oid", "value": "1.3.6.1.4.1.22554.5.1"},
+                {"name": "quantum-shield:fips-status", "value": "Round-4 Candidate"},
+                {"name": "quantum-shield:retention-requirement", "value": "25+ years"},
             ]
         },
     ]

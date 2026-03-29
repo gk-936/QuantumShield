@@ -15,6 +15,7 @@ import TriadScanner from './pages/TriadScanner';
 import Remediation from './pages/Remediation';
 import QDaySimulator from './pages/QDaySimulator';
 import MobileScanner from './pages/MobileScanner';
+import PQCSelector from './pages/PQCSelector';
 import { login, verifyToken } from './api';
 import './index.css';
 
@@ -132,6 +133,7 @@ function App() {
         <Route path="remediation" element={<Remediation />} />
         <Route path="qday" element={<QDaySimulator />} />
         <Route path="mobile" element={<MobileScanner />} />
+        <Route path="pqc-selector" element={<PQCSelector />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

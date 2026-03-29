@@ -12,7 +12,7 @@ load_dotenv()
 
 from db import engine, Base
 from seed_data import seed
-from routers import auth, scan, data, remediation, mobile, discovery, scheduler
+from routers import auth, scan, data, remediation, mobile, discovery, scheduler, pqc_selector
 
 
 @asynccontextmanager
@@ -21,10 +21,11 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     seed()
     print("""
-    🚀 Qubit-Guard.AI Backend is up!
-    📡 Framework: FastAPI + Uvicorn
-    🛡️  PQC Scanning Engine: ONLINE (Deterministic)
-    🗄️  Storage: SQLite via SQLAlchemy
+    [*] Qubit-Guard.AI Backend is up!
+    [>] Framework: FastAPI + Uvicorn
+    [>] PQC Scanning Engine: ONLINE (Deterministic)
+    [>] PQC Smart Selector: ONLINE (ML Random Forest)
+    [>] Storage: SQLite via SQLAlchemy
     """)
     yield
     # Shutdown
@@ -66,6 +67,7 @@ app.include_router(remediation.router, prefix="/api/remediation", tags=["Remedia
 app.include_router(discovery.router, prefix="/api/discovery", tags=["discovery"])
 app.include_router(mobile.router,      prefix="/api/mobile",      tags=["Mobile"])
 app.include_router(scheduler.router,   prefix="/api/scheduler",   tags=["Scheduler"])
+app.include_router(pqc_selector.router, prefix="/api/pqc",         tags=["PQC Selector"])
 
 
 if __name__ == "__main__":

@@ -36,4 +36,8 @@ export const generateRemediation = (findings) => api.post('/remediation/generate
 export const chatWithExpert = (message, history) => api.post('/remediation/chat', { message, history });
 export const sendEmailReport = (data) => api.post('/data/report/send', data);
 
+export const selectPQCAlgorithm = (metadata) => api.post('/pqc/select', metadata);
+export const getPQCAlgorithms = () => api.get('/pqc/algorithms');
+export const getPQCAudit = () => api.get('/pqc/audit');
+
 export default api;
