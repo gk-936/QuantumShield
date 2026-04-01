@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from models import DashboardSummary, InventoryStat, PostureStat, CbomVulnerabilitySummary, CbomItem
 from services.cbom_generator import generate_cyclonedx
-from services.mail_service import send_scan_report
+from services.mail_service import send_scan_report, send_scan_report_async
 from pydantic import BaseModel
 
 class EmailRequest(BaseModel):
@@ -149,7 +149,8 @@ def export_cbom(fmt: str, db: Session = Depends(get_db)):
         headers={"Content-Disposition": f"attachment; filename=cbom.{fmt}"},
     )
 @router.post("/report/send")
-def send_report(req: EmailRequest, db: Session = Depends(get_db)):
+async def send_report(req: EmailRequest, db: Session = Depends(get_db)):
+    import asyncio
     # Fetch some dummy scan results to populate the email
     overall_qvs = 85  # Default or fetched from posture
     findings = {
@@ -163,7 +164,20 @@ def send_report(req: EmailRequest, db: Session = Depends(get_db)):
     smtp_pass = os.getenv("SMTP_PASS", "")
     is_simulated = not (smtp_user and smtp_pass)
     
-    success, error_detail = send_scan_report(req.email, findings)
+    try:
+        # 10-second hard timeout so the button never hangs forever
+        success, error_detail = await asyncio.wait_for(
+            send_scan_report_async(req.email, findings),
+            timeout=10.0
+        )
+    except asyncio.TimeoutError:
+        # Network is blocked or SMTP unreachable — graceful demo fallback
+        print(f"[MAIL] Timed out after 10s. Falling back to demo mode.")
+        return {
+            "success": True,
+            "message": f"Report generated for {req.email} (Demo Mode — SMTP timed out)",
+            "simulated": True
+        }
     
     # If it's a Demo Mode fallback, treat as simulation
     is_demo_fallback = "Demo Mode" in str(error_detail)
@@ -175,3 +189,4 @@ def send_report(req: EmailRequest, db: Session = Depends(get_db)):
             "simulated": is_simulated or is_demo_fallback
         }
     return {"success": False, "message": f"SMTP Error: {error_detail}"}
+

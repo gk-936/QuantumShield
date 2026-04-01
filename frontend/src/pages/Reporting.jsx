@@ -19,7 +19,12 @@ const Reporting = () => {
       const response = await sendEmailReport({ email, reportType, formats: selectedFormats });
       if (response.data.success) {
         if (response.data.simulated) {
-          alert(`[SIMULATION MODE] The report for ${email} has been generated and logged to the server console. To send real emails, please configure SMTP credentials in the backend .env file.`);
+          const backendMsg = response.data.message || '';
+          if (backendMsg.includes('Demo Mode')) {
+            alert(`[SIMULATION MODE] Report logged to server console.\n\nNotice: ${backendMsg}\n\nNote: Gmail often blocks basic SMTP Authentication by default. You may need to use an App Password for this account.`);
+          } else {
+            alert(`[SIMULATION MODE] The report for ${email} has been generated and logged to the server console. To send real emails, please configure SMTP credentials in the backend .env file.`);
+          }
         } else {
           alert(`Success! The ${reportType.toUpperCase()} report has been dispatched to ${email}.`);
         }
@@ -108,7 +113,7 @@ const Reporting = () => {
         </div>
 
         <div style={{ marginTop: '30px', borderTop: '1px solid #f0f0f0', paddingTop: '20px' }}>
-          <label className="form-label" style={{ color: '#1A5ACC', fontWeight: 700 }}>4. ONE-TIME DISPATCH (EMAIL)</label>
+          <label className="form-label" style={{ color: '#1A5ACC', fontWeight: 700 }}>4. ONE-TIME DISPATCH (EMAIL VIA GMAIL)</label>
           <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
             <input 
               type="email" 
