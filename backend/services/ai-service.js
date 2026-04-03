@@ -101,4 +101,34 @@ Current Technical Request: ${question}` }]
     }
 }
 
-module.exports = { analyzeVulnerabilities, askRemediationExpert };
+async function generateRemediation(findings, targetAlgo) {
+  if (!GEMINI_API_KEY) return null;
+
+  const prompt = `
+    As a PQC Migration Expert, generate actual remediation code (Shell or Terraform) for the following vulnerabilities:
+    ${JSON.stringify(findings, null, 2)}
+    
+    The target PQC algorithm is: ${targetAlgo}.
+    
+    Provide exactly two code blocks:
+    1. A Bash script for OS/Web Server hardening.
+    2. A Kubernetes or Terraform block for infrastructure-level PQC enforcement.
+    
+    Return as a JSON array of objects: [{ "type": "bash", "title": "...", "code": "..." }, { "type": "terraform", "title": "...", "code": "..." }]
+  `;
+
+  try {
+    const response = await axios.post(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      contents: [{ parts: [{ text: prompt }] }]
+    });
+
+    const aiText = response.data.candidates[0].content.parts[0].text;
+    const cleanedJson = aiText.replace(/```json|```/g, '').trim();
+    return JSON.parse(cleanedJson);
+  } catch (error) {
+    console.error('Remediation Generation Error:', error.message);
+    return null;
+  }
+}
+
+module.exports = { analyzeVulnerabilities, askRemediationExpert, generateRemediation };

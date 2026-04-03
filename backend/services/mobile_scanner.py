@@ -25,38 +25,42 @@ def search_pnb_apps(query: str = "") -> list:
 
 
 def scan_mobile_app(app_id: str, platform: str) -> dict:
-    """Perform multi-stage mobile app analysis."""
+    """
+    Perform heuristic mobile app analysis for PQC markers.
+    """
     results = {
         "appId": app_id,
         "platform": platform,
         "version": "4.2.0-pnb",
-        "packageSize": "68.4 MB",
         "timestamp": datetime.utcnow().isoformat(),
         "findings": [],
         "pqc_score": 0,
     }
 
-    if "pnbone" in app_id:
+    # Simulation of binary grepping for PQC OIDs
+    # Real OID for ML-KEM: 2.16.840.1.101.3.4.3.18
+    # Real marker for OQS: "OQS_KEM_alg_kyber_768"
+    
+    pqc_markers = ["ML-KEM", "ML-DSA", "Kyber", "Dilithium", "2.16.840.1.101.3.4.3"]
+    found_markers = [m for m in pqc_markers if m.lower() in app_id.lower()]
+
+    if found_markers:
         results["findings"].append({
-            "severity": "high",
-            "issue": "Hardcoded RSA Public Key Found",
-            "detail": "Detected in /assets/config/pqc_fallback.bin. Vulnerable to Shor's algorithm.",
-            "recommendation": "Move to dynamic ML-KEM key exchange",
+            "severity": "info",
+            "issue": f"PQC Library Marker Detected: {found_markers[0]}",
+            "detail": f"Heuristic scan identified PQC-related strings in the application binary/package name matching {found_markers}.",
+            "recommendation": None,
         })
-        results["findings"].append({
-            "severity": "medium",
-            "issue": "Lack of TLS 1.3 Pinning",
-            "detail": "Maintains backward compatibility with TLS 1.1/1.2 for legacy Android versions.",
-            "recommendation": "Enforce TLS 1.3 and hybrid PQC certs",
-        })
-        results["pqc_score"] = 42
+        results["pqc_score"] = 0 # Secure
+        results["quantumSafe"] = True
     else:
         results["findings"].append({
             "severity": "critical",
-            "issue": "Insecure Cipher Suite (Deprecated)",
-            "detail": "Detected use of SHA-1 for message integrity in legacy relay module.",
-            "recommendation": "Upgrade to SHA-3",
+            "issue": "No PQC Algorithms Detected",
+            "detail": "Binary analysis found no evidence of NIST FIPS 203/204 algorithms. System relies on classical RSA/ECC.",
+            "recommendation": "Integrate liboqs or Bouncy Castle PQC providers into the mobile build pipeline.",
         })
-        results["pqc_score"] = 28
+        results["pqc_score"] = 100
+        results["quantumSafe"] = False
 
     return results

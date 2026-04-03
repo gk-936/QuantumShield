@@ -1,3 +1,5 @@
+from typing import Union
+
 """
 PQC Algorithm Registry — Canonical source of truth for all 6 NIST PQC algorithms.
 
@@ -245,7 +247,7 @@ PQC_ALGORITHM_REGISTRY = {
 }
 
 
-def get_algorithm(name: str) -> dict | None:
+def get_algorithm(name: str) -> Union[dict, None]:
     """Look up an algorithm by name or alias."""
     name_upper = name.upper().strip()
     for key, algo in PQC_ALGORITHM_REGISTRY.items():

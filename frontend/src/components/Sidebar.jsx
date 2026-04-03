@@ -11,6 +11,7 @@ const Sidebar = () => {
     { id: 'rating', icon: '⭐', label: 'Cyber Rating' },
     { id: 'reporting', icon: '📊', label: 'Reporting' },
     { id: 'triad', icon: '⚡', label: 'Triad Scanner', badge: 'NEW' },
+    { id: 'history', icon: '📜', label: 'Scan History' },
     { id: 'mobile', icon: '📱', label: 'Mobile App Scanning' },
     { id: 'remediation', icon: '🔧', label: 'Auto-Remediation' },
     { id: 'qday', icon: '☢️', label: 'Q-Day Simulator' },

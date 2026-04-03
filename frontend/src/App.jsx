@@ -16,6 +16,8 @@ import Remediation from './pages/Remediation';
 import QDaySimulator from './pages/QDaySimulator';
 import MobileScanner from './pages/MobileScanner';
 import PQCSelector from './pages/PQCSelector';
+import History from './pages/History';
+import { ScanProvider } from './context/ScanContext';
 import { login, verifyToken } from './api';
 import './index.css';
 
@@ -118,25 +120,28 @@ function App() {
   if (verifying) return <div className="hk-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'white', fontFamily: 'var(--mono)' }}>Authenticating...</div>;
 
   return (
-    <Routes>
-      <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
-      <Route path="/" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Layout onLogout={handleLogout} /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Home />} />
-        <Route path="inventory" element={<Inventory />} />
-        <Route path="discovery" element={<Discovery />} />
-        <Route path="cbom" element={<CBOM />} />
-        <Route path="posture" element={<Posture />} />
-        <Route path="rating" element={<Rating />} />
-        <Route path="reporting" element={<Reporting />} />
-        <Route path="triad" element={<TriadScanner />} />
-        <Route path="remediation" element={<Remediation />} />
-        <Route path="qday" element={<QDaySimulator />} />
-        <Route path="mobile" element={<MobileScanner />} />
-        <Route path="pqc-selector" element={<PQCSelector />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <ScanProvider>
+      <Routes>
+        <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Layout onLogout={handleLogout} /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Home />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="discovery" element={<Discovery />} />
+          <Route path="cbom" element={<CBOM />} />
+          <Route path="posture" element={<Posture />} />
+          <Route path="rating" element={<Rating />} />
+          <Route path="reporting" element={<Reporting />} />
+          <Route path="triad" element={<TriadScanner />} />
+          <Route path="remediation" element={<Remediation />} />
+          <Route path="qday" element={<QDaySimulator />} />
+          <Route path="mobile" element={<MobileScanner />} />
+          <Route path="pqc-selector" element={<PQCSelector />} />
+          <Route path="history" element={<History />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ScanProvider>
   );
 }
 

@@ -9,6 +9,17 @@ const api = axios.create({
   },
 });
 
+// Request interceptor to add scan ID context
+api.interceptors.request.use((config) => {
+  const activeScanId = localStorage.getItem('active_scan_id');
+  if (activeScanId) {
+    config.headers['X-Scan-Id'] = activeScanId;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 export const checkHealth = () => api.get('/health');
 
 export const runTriadScan = (data) => api.post('/scan/triad', data);
