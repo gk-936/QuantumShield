@@ -29,9 +29,8 @@ const History = () => {
                         <tr>
                             <th>Scan ID</th>
                             <th>Target Domain</th>
-                            <th>Executed By</th>
+                            <th>QVS Score</th>
                             <th>Timestamp</th>
-                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -41,17 +40,22 @@ const History = () => {
                                 <tr key={s.id} className={activeScanId === s.id ? 'active-row' : ''}>
                                     <td style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>{s.id}</td>
                                     <td><strong>{s.target}</strong></td>
-                                    <td><span className="risk-badge rb-medium">{s.user}</span></td>
+                                    <td>
+                                        <span className={`risk-badge ${s.qvs > 80 ? 'rb-critical' : s.qvs > 50 ? 'rb-high' : 'rb-low'}`}>
+                                            {s.qvs} QVS
+                                        </span>
+                                    </td>
                                     <td>{formatDate(s.timestamp)}</td>
-                                    <td><span className="pqc-yes">✅ Success</span></td>
                                     <td>
                                         {activeScanId === s.id ? (
                                             <button className="btn btn-sm btn-red" onClick={() => switchScan('')}>
-                                                Clear Filter
+                                                Clear Active
                                             </button>
                                         ) : (
-                                            <button className="btn btn-sm btn-gold" onClick={() => switchScan(s.id)}>
-                                                Switch View
+                                            <button className="btn btn-sm btn-gold" onClick={() => {
+                                                switchScan(s.id);
+                                            }}>
+                                                Activate Context
                                             </button>
                                         )}
                                     </td>
@@ -59,7 +63,7 @@ const History = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
+                                <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
                                     No scans found in persistence layer.
                                 </td>
                             </tr>

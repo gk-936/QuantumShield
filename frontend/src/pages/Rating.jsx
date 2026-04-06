@@ -1,14 +1,20 @@
 import React from 'react';
+import { useScan } from '../context/ScanContext';
 
 const Rating = () => {
+  const { activeData } = useScan();
+  const qvs = activeData?.riskScores?.overall || 85;
+  const ratingScore = Math.max(0, 1000 - (qvs * 8));
+  const ratingLabel = ratingScore > 700 ? '✓ Elite-PQC Status' : ratingScore > 400 ? '🔰 Standard Status' : '⭕ Legacy Status';
+
   return (
     <div id="page-rating" className="page-view">
       <div className="grid-2">
         <div>
           <div className="score-display">
             <div style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'rgba(255,255,255,.5)', letterSpacing: '3px', marginBottom: '8px' }}>CONSOLIDATED ENTERPRISE CYBER-RATING</div>
-            <div className="score-num">755<span style={{ fontSize: '30px' }}>/1000</span></div>
-            <div className="score-label">✓ Elite-PQC Status</div>
+            <div className="score-num">{ratingScore}<span style={{ fontSize: '30px' }}>/1000</span></div>
+            <div className="score-label" style={{ color: ratingScore > 700 ? '#1A8A1A' : ratingScore > 400 ? '#D47800' : '#C0272D' }}>{ratingLabel}</div>
           </div>
           <div className="card">
             <div className="card-title">Rating Scale</div>

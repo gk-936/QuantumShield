@@ -72,5 +72,6 @@ app.include_router(pqc_selector.router, prefix="/api/pqc",         tags=["PQC Se
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 5000))
+    port = int(os.getenv("PORT", 5006))
+    print(f"[*] Starting backend on port {port}...")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

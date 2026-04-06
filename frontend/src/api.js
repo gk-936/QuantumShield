@@ -4,6 +4,7 @@ const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,6 +12,10 @@ const api = axios.create({
 
 // Request interceptor to add scan ID context
 api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pnc_token');
+  if (token) {
+    config.headers.Authorization = token;
+  }
   const activeScanId = localStorage.getItem('active_scan_id');
   if (activeScanId) {
     config.headers['X-Scan-Id'] = activeScanId;

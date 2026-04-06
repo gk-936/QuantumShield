@@ -19,6 +19,44 @@ from services.audit_service import log_audit_event
 router = APIRouter()
 
 
+@router.get("/history")
+def get_scan_history(db: Session = Depends(get_db)):
+    scans = db.query(ScanResult).order_by(ScanResult.timestamp.desc()).all()
+    data = [
+        {
+            "id": s.scan_id,
+            "timestamp": s.timestamp.isoformat(),
+            "target": s.web_url,
+            "qvs": s.overall_qvs,
+        }
+        for s in scans
+    ]
+    return {"success": True, "data": data}
+
+
+@router.get("/{scan_id}")
+def get_scan_detail(scan_id: str, db: Session = Depends(get_db)):
+    from fastapi.responses import JSONResponse
+    scan = db.query(ScanResult).filter(ScanResult.scan_id == scan_id).first()
+    if not scan:
+        return JSONResponse(status_code=404, content={"success": False, "message": "Scan not found"})
+    
+    return {
+        "success": True,
+        "data": {
+            "id": scan.scan_id,
+            "timestamp": scan.timestamp.isoformat(),
+            "findings": json.loads(scan.findings_json),
+            "riskScores": json.loads(scan.risk_scores_json),
+            "cbom": json.loads(scan.cbom_json),
+            "apiMetrics": json.loads(scan.api_metrics_json or '{}'),
+            "webUrl": scan.web_url,
+            "vpnUrl": scan.vpn_url,
+            "apiUrl": scan.api_url,
+        }
+    }
+
+
 class TriadScanRequest(BaseModel):
     webUrl: str = "www.pnb.bank.in"
     vpnUrl: str = "vpn.pnb.bank.in"
@@ -51,6 +89,7 @@ def triad_scan(body: TriadScanRequest, db: Session = Depends(get_db)):
         findings_json=json.dumps(scan_results["findings"]),
         risk_scores_json=json.dumps(scan_results["riskScores"]),
         cbom_json=json.dumps(cbom),
+        api_metrics_json=json.dumps(api_metrics),
         overall_qvs=scan_results["riskScores"]["overall"],
     )
     db.add(scan_record)

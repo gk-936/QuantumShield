@@ -1,7 +1,15 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useScan } from '../context/ScanContext';
 
 const Sidebar = () => {
+  const { resetAudit, activeScanMetadata } = useScan();
+  const navigate = useNavigate();
+  
+  const handleNewAudit = () => {
+    resetAudit();
+    navigate('/dashboard');
+  };
   const menuItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
     { id: 'inventory', icon: '📋', label: 'Asset Inventory' },
@@ -29,6 +37,34 @@ const Sidebar = () => {
         </svg>
         <div className="sb-brand">Qubit-Guard Platform</div>
       </div>
+
+      <div style={{ padding: '0 12px 12px 12px' }}>
+        <button 
+          onClick={handleNewAudit}
+          style={{
+            width: '100%',
+            padding: '10px',
+            background: 'linear-gradient(90deg, #D4A017 0%, #B8860B 100%)',
+            border: 'none',
+            borderRadius: '6px',
+            color: 'white',
+            fontWeight: '700',
+            fontSize: '12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 10px rgba(212, 160, 23, 0.3)',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-1px)'}
+          onMouseOut={(e) => e.target.style.transform = 'none'}
+        >
+          <span>⚡</span> AUDIT NEW BANK
+        </button>
+      </div>
+
       <div className="sb-nav">
         {menuItems.map((item) => (
           <NavLink 

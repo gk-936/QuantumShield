@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useScan } from '../context/ScanContext';
 
 const PILLAR_OPTIONS = [
   { value: 'Web', label: 'Pillar A — Web/TLS', icon: '🌐' },
@@ -12,25 +13,8 @@ const PILLAR_OPTIONS = [
 const DEVICE_OPTIONS = ['Server', 'Mobile', 'IoT', 'HSM'];
 const COMPLIANCE_OPTIONS = ['CERT-In', 'RBI', 'NIST'];
 
-const ALGO_COLORS = {
-  'ML-KEM': '#0284c7',
-  'ML-DSA': '#9333ea',
-  'SLH-DSA': '#16a34a',
-  'FN-DSA': '#d97706',
-  'XMSS': '#dc2626',
-  'LMS': '#dc2626',
-  'BIKE': '#db2777',
-  'HQC': '#db2777',
-};
-
-function getAlgoColor(name) {
-  for (const [key, color] of Object.entries(ALGO_COLORS)) {
-    if (name.toUpperCase().includes(key.toUpperCase())) return color;
-  }
-  return '#0284c7';
-}
-
 const PQCSelector = () => {
+  const { activeScanId, activeData } = useScan();
   const [pillar, setPillar] = useState('Web');
   const [bandwidth, setBandwidth] = useState(50000);
   const [latency, setLatency] = useState(10);
@@ -42,6 +26,15 @@ const PQCSelector = () => {
   const [auditTable, setAuditTable] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('selector');
+
+  useEffect(() => {
+    if (activeData) {
+      // Contextual auto-fill from scan
+      if (activeData.findings?.web?.length > 0) setPillar('Web');
+      else if (activeData.findings?.api?.length > 0) setPillar('API');
+      else if (activeData.findings?.vpn?.length > 0) setPillar('VPN');
+    }
+  }, [activeScanId, activeData]);
 
   useEffect(() => {
     fetchAlgorithms();

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { searchMobileApps, scanMobileApp as apiScanApp } from '../api';
 import { useNavigate } from 'react-router-dom';
+import { useScan } from '../context/ScanContext';
 
 const MobileScanner = () => {
+  const { activeScanId, activeScanMetadata } = useScan();
   const navigate = useNavigate();
   const [apps, setApps] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -13,7 +15,7 @@ const MobileScanner = () => {
 
   useEffect(() => {
     searchApps();
-  }, []);
+  }, [activeScanId]);
 
   const searchApps = async () => {
     setIsSearching(true);

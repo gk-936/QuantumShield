@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getInventoryData } from '../api';
+import { useScan } from '../context/ScanContext';
 
 const Inventory = () => {
+  const { activeScanId } = useScan();
   const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,7 +27,7 @@ const Inventory = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [activeScanId]);
 
   const handleDelete = async (purl) => {
     if (!window.confirm(`Are you sure you want to remove asset ${purl}?`)) return;

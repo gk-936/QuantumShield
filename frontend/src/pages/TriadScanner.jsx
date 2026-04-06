@@ -1,19 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ApiMetrics from '../components/ApiMetrics';
 import { runTriadScan as apiRunScan, chatWithExpert } from '../api';
+import { useScan } from '../context/ScanContext';
 
 const TriadScanner = () => {
+  const { activeData, setActiveData, switchScan, pendingScan, setPendingScan } = useScan();
   const [isScanning, setIsScanning] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [findings, setFindings] = useState({ web: [], vpn: [], api: [], firmware: [], archival: [] });
-  const [riskScores, setRiskScores] = useState({ web: 0, vpn: 0, api: 0, firmware: 0, archival: 0, overall: 0 });
-  const [selectorLog, setSelectorLog] = useState(null);
-  const [apiMetrics, setApiMetrics] = useState(null);
-  const [cbom, setCbom] = useState(null);
-  const [remediation, setRemediation] = useState([]);
+  const [showResults, setShowResults] = useState(!!activeData);
+  const [webTarget, setWebTarget] = useState(activeData?.webUrl || 'www.pnb.bank.in');
+  const [vpnTarget, setVpnTarget] = useState(activeData?.vpnUrl || 'vpn.pnb.bank.in');
+  const [apiTarget, setApiTarget] = useState(activeData?.apiUrl || 'api.pnb.bank.in');
+  const [jwtToken, setJwtToken] = useState('eyJhbGciOiJSUzI1NiIs...');
+  
+  const [findings, setFindings] = useState(activeData?.findings || { web: [], vpn: [], api: [], firmware: [], archival: [] });
+  const [riskScores, setRiskScores] = useState(activeData?.riskScores || { web: 0, vpn: 0, api: 0, firmware: 0, archival: 0, overall: 0 });
+  const [selectorLog, setSelectorLog] = useState(activeData?.selectorLog || null);
+  const [apiMetrics, setApiMetrics] = useState(activeData?.apiMetrics || null);
+  const [cbom, setCbom] = useState(activeData?.cbom || null);
+  const [remediation, setRemediation] = useState(activeData?.remediation || []);
   const [scanProgress, setScanProgress] = useState('');
   const [tokenAnalysis, setTokenAnalysis] = useState('');
   const [analyzingToken, setAnalyzingToken] = useState(false);
+
+  useEffect(() => {
+    if (activeData) {
+      setFindings(activeData.findings);
+      setRiskScores(activeData.riskScores);
+      setApiMetrics(activeData.apiMetrics);
+      setCbom(activeData.cbom);
+      setRemediation(activeData.remediation || []);
+      setSelectorLog(activeData.selectorLog || null);
+      setWebTarget(activeData.webUrl);
+      setVpnTarget(activeData.vpnUrl);
+      setApiTarget(activeData.apiUrl);
+      setShowResults(true);
+    }
+  }, [activeData]);
+
+  // Handle Automated Scan from Discovery
+  useEffect(() => {
+    if (pendingScan && !isScanning) {
+      const { web, vpn, api } = pendingScan;
+      setWebTarget(web || '');
+      setVpnTarget(vpn || '');
+      setApiTarget(api || '');
+      setPendingScan(null); // Clear pending state
+      
+      // Artificial delay to let state update and UI show the values
+      setTimeout(() => {
+        const btn = document.getElementById('initiate-scan-btn');
+        if (btn) btn.click();
+      }, 500);
+    }
+  }, [pendingScan, isScanning]);
 
   const handleTokenAnalysis = async () => {
     const token = document.getElementById('jwt-token-sandbox').value;
@@ -42,14 +81,16 @@ const TriadScanner = () => {
       setScanProgress('Parsing API tokens & mTLS config...');
 
       const response = await apiRunScan({
-        webUrl: document.getElementById('scan-web').value,
-        vpnUrl: document.getElementById('scan-vpn').value,
-        apiUrl: document.getElementById('scan-api').value,
-        jwtToken: document.getElementById('jwt-token-sandbox').value
+        webUrl: webTarget,
+        vpnUrl: vpnTarget,
+        apiUrl: apiTarget,
+        jwtToken: jwtToken
       });
 
       if (response.data.success) {
         const result = response.data.data;
+        const scanId = result.id;
+        
         setFindings(result.findings);
         setRiskScores(result.riskScores || { web: 0, vpn: 0, api: 0, firmware: 0, archival: 0, overall: 0 });
         setApiMetrics(result.apiMetrics);
@@ -57,6 +98,10 @@ const TriadScanner = () => {
         setRemediation(result.remediation || []);
         setSelectorLog(result.selectorLog || null);
         setShowResults(true);
+
+        // Update Global Context
+        setActiveData(result);
+        switchScan(scanId);
       }
     } catch (err) {
       console.error('Scan Failed:', err);
@@ -97,24 +142,25 @@ const TriadScanner = () => {
         <div className="card-title"><span className="ct-icon">⚡</span>Triad Scanner — Define Attack Surface</div>
         <div className="scan-row">
           <span className="scan-badge sb-web">WEB/TLS</span>
-          <input type="text" id="scan-web" defaultValue="www.pnb.bank.in" className="form-input" style={{ flex: 1, fontFamily: 'var(--mono)' }} />
+          <input type="text" id="scan-web" value={webTarget} onChange={(e) => setWebTarget(e.target.value)} className="form-input" style={{ flex: 1, fontFamily: 'var(--mono)' }} />
           <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Port 443/TCP · Nginx / Apache / IIS</span>
         </div>
         <div className="scan-row">
           <span className="scan-badge sb-vpn">VPN/TLS</span>
-          <input type="text" id="scan-vpn" defaultValue="vpn.pnb.bank.in" className="form-input" style={{ flex: 1, fontFamily: 'var(--mono)' }} />
+          <input type="text" id="scan-vpn" value={vpnTarget} onChange={(e) => setVpnTarget(e.target.value)} className="form-input" style={{ flex: 1, fontFamily: 'var(--mono)' }} />
           <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Port 443/TCP · SSL-VPN / Cisco AnyConnect</span>
         </div>
         <div className="scan-row">
           <span className="scan-badge sb-api">API/TLS</span>
-          <input type="text" id="scan-api" defaultValue="api.pnb.bank.in" className="form-input" style={{ flex: 1, fontFamily: 'var(--mono)' }} />
+          <input type="text" id="scan-api" value={apiTarget} onChange={(e) => setApiTarget(e.target.value)} className="form-input" style={{ flex: 1, fontFamily: 'var(--mono)' }} />
           <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Port 443/TCP · REST / GraphQL / mTLS</span>
         </div>
         <div style={{ marginTop: '10px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '6px' }}>⬡ API PILLAR — Paste a sample JWT or OAuth Bearer Token for signing-algorithm analysis</div>
-          <textarea id="jwt-token-sandbox" className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }} defaultValue="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fakesig"></textarea>
+          <textarea id="jwt-token-sandbox" value={jwtToken} onChange={(e) => setJwtToken(e.target.value)} className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }}></textarea>
         </div>
         <button
+          id="initiate-scan-btn"
           className="btn btn-gold"
           style={{ marginTop: '12px', fontSize: '16px', width: '100%' }}
           onClick={runTriadScan}

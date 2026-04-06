@@ -43,12 +43,20 @@ function App() {
             handleLogout();
           }
         } catch (err) {
+          console.error("Auth verification failed:", err);
           handleLogout();
         }
       }
       setVerifying(false);
     };
+    
+    // Add small delay to avoid UI flicker
+    const timeout = setTimeout(() => {
+      if (verifying) setVerifying(false);
+    }, 4000); 
+
     checkAuth();
+    return () => clearTimeout(timeout);
   }, []);
 
   const handleLogin = async (username, password) => {

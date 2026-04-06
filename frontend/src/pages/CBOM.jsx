@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { getCbomData } from '../api';
+import { useScan } from '../context/ScanContext';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const CBOM = () => {
+  const { activeScanId } = useScan();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getCbomData();
-        if (response.data.success) {
-          setItems(response.data.data.cbomItems);
-        }
-      } catch (err) {
-        console.error('Failed to fetch CBOM data:', err);
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getCbomData();
+      if (response.data.success) {
+        setItems(response.data.data.cbomItems);
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch CBOM data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [activeScanId]);
 
   if (loading) {
     return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--pnb-gold)', fontFamily: 'var(--mono)' }}>Loading CBOM Data...</div>;

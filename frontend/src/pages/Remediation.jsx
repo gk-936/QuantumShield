@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateRemediation, chatWithExpert } from '../api';
+import { chatWithExpert } from '../api';
+import { useScan } from '../context/ScanContext';
 import ReactMarkdown from 'react-markdown';
 import { Copy, Terminal, Zap } from 'lucide-react';
 
 const Remediation = () => {
+  const { activeScanId, activeScanMetadata } = useScan();
   const [remediations, setRemediations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [openIndex, setOpenIndex] = useState(0);
@@ -41,9 +43,15 @@ const Remediation = () => {
   const loadFixes = async () => {
     setIsLoading(true);
     try {
-      const res = await generateRemediation([]); // Passing empty findings for now to get defaults
-      if (res.data.success) {
-        setRemediations(res.data.scripts);
+      const res = await fetch('/api/data/remediation', {
+        headers: {
+          'X-Scan-Id': activeScanId,
+          'Authorization': localStorage.getItem('pnc_token') || ''
+        }
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRemediations(json.data);
       }
     } catch (err) {
       console.error('Failed to load remediation fixes:', err);
@@ -54,13 +62,20 @@ const Remediation = () => {
 
   useEffect(() => {
     loadFixes();
-  }, []);
+  }, [activeScanId]);
 
   return (
     <div id="page-remediation" className="page-view">
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div className="card-title">AI Auto-Remediation Deployment Scripts</div>
+          <div className="card-title">
+            AI Auto-Remediation Deployment Scripts
+            {activeScanMetadata && (
+              <span style={{ marginLeft: '12px', fontSize: '11px', color: 'var(--pnb-gold)', fontWeight: 700 }}>
+                 🛰️ AUDITING: {activeScanMetadata.target}
+              </span>
+            )}
+          </div>
           <button className="btn btn-gold btn-sm" onClick={loadFixes} disabled={isLoading}>
             {isLoading ? 'Generating...' : '⚡ Regenerate AI Fixes'}
           </button>

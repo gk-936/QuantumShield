@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { sendEmailReport } from '../api';
+import { useScan } from '../context/ScanContext';
 
 const Reporting = () => {
+  const { activeScanId, activeScanMetadata } = useScan();
   const [reportType, setReportType] = useState('executive');
   const [isScheduled, setIsScheduled] = useState(false);
   const [email, setEmail] = useState('');

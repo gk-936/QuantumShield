@@ -78,6 +78,7 @@ class ScanResult(Base):
     findings_json = Column(Text, default="{}")   # Full JSON findings
     risk_scores_json = Column(Text, default="{}") # Per-pillar QVS
     cbom_json = Column(Text, default="{}")        # Generated CBOM
+    api_metrics_json = Column(Text, default="{}") # Persisted API metrics
     overall_qvs = Column(Float, default=0.0)
 
 
