@@ -14,6 +14,7 @@ from services.scanner_engine import perform_triad_scan
 from services.api_scanner import discover_endpoints
 from services.cbom_generator import generate_triad_cbom
 from services.remediation_service import generate_triad_remediation
+from services.discovery_service import discover_pnb_assets
 from services.audit_service import log_audit_event
 
 router = APIRouter()
@@ -71,14 +72,54 @@ def triad_scan(body: TriadScanRequest, db: Session = Depends(get_db)):
     # 1. Deterministic Triad Scan (no AI)
     scan_results = perform_triad_scan(body.webUrl, body.vpnUrl, body.apiUrl, body.jwtToken or "")
 
-    # 2. API Endpoint Discovery & Bucketing
-    api_metrics = discover_endpoints(body.apiUrl or body.webUrl)
+    # 2. Organic Infrastructure Discovery (Find all subdomains first)
+    discovery_results = discover_pnb_assets(body.webUrl)
+    discovered_assets = discovery_results.get("assets", [])
 
-    # 3. Unified CBOM Generation
-    cbom = generate_triad_cbom(scan_results["findings"], body.webUrl, body.vpnUrl, body.apiUrl)
+    # 3. Deep Multi-Host API Probing
+    # We probe the main API URL AND all discovered web-active subdomains
+    all_endpoints = []
+    seen_endpoint_urls = set()
+    
+    hosts_to_probe = [body.webUrl, body.apiUrl] if body.apiUrl else [body.webUrl]
+    for asset in discovered_assets:
+        if "Web/TLS" in asset.get("pillars", []):
+            hosts_to_probe.append(asset["host"])
+    
+    # Run API discovery across the found surface area
+    for host in set(hosts_to_probe):
+        if not host: continue
+        res = discover_endpoints(host)
+        for ep in res.get("details", []):
+            if ep["url"] not in seen_endpoint_urls:
+                all_endpoints.append(ep)
+                seen_endpoint_urls.add(ep["url"])
 
-    # 4. Triad-Specific Remediation
-    remediation = generate_triad_remediation()
+    # Update api_metrics for the UI summary
+    api_metrics = {
+        "total": len(all_endpoints),
+        "discovered": len(all_endpoints),
+        "details": all_endpoints,
+        "buckets": {}, # Calculated from all_endpoints
+        "quantumRisk": {"vulnerable": sum(1 for ep in all_endpoints if "PQC" not in ep.get("quantumRisk", "")), "pqc_ready": sum(1 for ep in all_endpoints if "PQC" in ep.get("quantumRisk", ""))}
+    }
+    for ep in all_endpoints:
+        b = ep.get("bucket", "General API")
+        api_metrics["buckets"][b] = api_metrics["buckets"].get(b, 0) + 1
+
+    # 4. Unified CBOM Generation (Ingests discovered hosts AND deep API endpoints)
+    cbom = generate_triad_cbom(
+        scan_results["findings"], 
+        body.webUrl, 
+        body.vpnUrl, 
+        body.apiUrl,
+        discovered_assets=discovered_assets,
+        discovered_endpoints=all_endpoints,
+        discovered_mobile_apps=discovery_results.get("mobile_apps", [])
+    )
+
+    # 5. Triad-Specific Remediation
+    remediation = generate_triad_remediation(scan_results["findings"], body.webUrl, body.vpnUrl, body.apiUrl)
 
     # 5. Persist scan result to SQLite
     scan_record = ScanResult(

@@ -24,7 +24,6 @@ router = APIRouter()
 @router.get("/dashboard")
 def get_dashboard(request: Request, db: Session = Depends(get_db)):
     import json
-    from services.entropy import get_entropy
     scan_id = request.headers.get("X-Scan-Id")
     
     if scan_id:
@@ -33,38 +32,45 @@ def get_dashboard(request: Request, db: Session = Depends(get_db)):
             risk_scores = json.loads(scan.risk_scores_json)
             cbom = json.loads(scan.cbom_json)
             findings = json.loads(scan.findings_json)
-            e = get_entropy(scan.web_url)
-            
-            # Derive dashboard stats from scan results
+            # Derive dashboard stats directly from structural scan results (no fakes)
             comp_count = len(cbom.get("components", []))
-            iot_count = e.get_int(5, 50)
+            
+            # Count the severities from actual real findings (which were populated organically)
+            # Find the total vulnerabilities across all scanners
+            all_findings = []
+            for pillar_findings in findings.values():
+                all_findings.extend(pillar_findings)
+                
+            critical_count = sum(1 for f in all_findings if f.get("severity") == "critical")
+            high_count = sum(1 for f in all_findings if f.get("severity") == "high")
+            medium_count = sum(1 for f in all_findings if f.get("severity") == "medium")
+            low_count = sum(1 for f in all_findings if f.get("severity") == "info" or f.get("severity") == "low")
             
             summary = {
-                "assetsDiscovery": {"value": str(comp_count + iot_count), "label": "Assets Discovery", "subtext": f"Target: {scan.web_url}"},
+                "assetsDiscovery": {"value": str(comp_count), "label": "Assets Discovered", "subtext": f"Target: {scan.web_url}"},
                 "cyberRating": {"value": "Tier 1" if risk_scores["overall"] < 20 else "Tier 2" if risk_scores["overall"] < 50 else "Tier 4", "label": "Cyber Rating", "subtext": f"QVS: {risk_scores['overall']}"},
-                "sslCerts": {"value": str(len(findings.get("web", []))), "label": "SSL Certs Engine", "subtext": "Critical Findings"},
-                "cbomVulnerabilities": {"value": str(sum(1 for c in cbom.get("components", []) if not c.get("quantumSafe"))), "label": "CBOM Vulnerabilities", "subtext": "Quantum Vulnerable"},
+                "sslCerts": {"value": str(len(findings.get("web", []))), "label": "SSL Certs Engine", "subtext": "Web Target Findings"},
+                "cbomVulnerabilities": {"value": str(critical_count + high_count), "label": "Severe Vulnerabilities", "subtext": "Critical and High"},
             }
             
             inventory = {
                 "ssl": len(findings.get("web", [])),
                 "software": comp_count,
-                "iot": iot_count,
-                "logins": e.get_int(10, 100),
+                "iot": len(findings.get("firmware", [])), # Mapping IoT/hardware to firmware findings
+                "logins": len(findings.get("api", [])),   # Mapping logins to API findings
             }
             
             posture = {
-                "mlKemAdoption": 100 - risk_scores.get("web", 100),
-                "mlDsaTransition": 100 - risk_scores.get("api", 100),
-                "legacyRemoval": 100 - risk_scores.get("overall", 100),
+                "mlKemAdoption": max(0, 100 - risk_scores.get("web", 100)),
+                "mlDsaTransition": max(0, 100 - risk_scores.get("api", 100)),
+                "legacyRemoval": max(0, 100 - risk_scores.get("overall", 100)),
             }
             
-            vuln_count = sum(1 for c in cbom.get("components", []) if not c.get("quantumSafe"))
             cbom_summary = {
-                "critical": vuln_count,
-                "high": e.get_int(1, 10),
-                "medium": e.get_int(5, 20),
-                "low": e.get_int(2, 8),
+                "critical": critical_count,
+                "high": high_count,
+                "medium": medium_count,
+                "low": low_count,
             }
             
             return {
@@ -117,6 +123,9 @@ def get_inventory(request: Request, db: Session = Depends(get_db)):
                     "risk": "Critical" if not c.get("quantumSafe") else "Safe",
                     "category": c.get("type", "TLS"),
                     "purl": f"pkg:triad/{c['name']}@{c.get('version', '0.0.0')}",
+                    "details": c.get("details", {}),
+                    "server_banner": c.get("details", {}).get("server_banner", "Unknown"),
+                    "security_audit": c.get("details", {}).get("security_audit", {})
                 }
                 for c in cbom.get("components", [])
             ]
@@ -132,6 +141,8 @@ def get_inventory(request: Request, db: Session = Depends(get_db)):
             "risk": i.risk,
             "category": i.category,
             "purl": i.purl,
+            "server_banner": getattr(i, 'server_banner', 'N/A'),
+            "security_audit": getattr(i, 'security_audit', {})
         }
         for i in items
     ]
@@ -250,9 +261,8 @@ def get_remediation(request: Request, db: Session = Depends(get_db)):
     if scan_id:
         scan = db.query(ScanResult).filter(ScanResult.scan_id == scan_id).first()
         if scan:
-            # In a real app, remediation would be saved in the DB.
-            # Here we regenerate it or return default if scan is found.
-            return {"success": True, "data": generate_triad_remediation()}
+            findings = json.loads(scan.findings_json)
+            return {"success": True, "data": generate_triad_remediation(findings, scan.web_url, scan.vpn_url, scan.api_url)}
     
     return {"success": True, "data": []}
 

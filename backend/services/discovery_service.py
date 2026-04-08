@@ -12,6 +12,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import dns.resolver
 import dns.zone
 import dns.query
+import json
+import ssl
 
 # --- 3. The Fuel: Expanded Dictionary Scope ---
 COMMON_SUBDOMAINS = [
@@ -26,6 +28,9 @@ COMMON_SUBDOMAINS = [
     "s3", "k8s", "ingress", "bastion", "vault", "cdn", "assets", "static", 
     "media", "db", "database", "sql", "redis", "elastic", "cloud", "aws", 
     "azure", "gcp", "iot", "edge", "proxy", "lb", "balancer",
+    # Banking Specific (Added for higher discovery depth)
+    "netbanking", "online", "pib", "mbs", "corp", "ebank", "payment", "card", 
+    "loan", "mortgage", "invest", "wealth", "trade", "b2b", "swift", "rtgs",
     # Business & Apps
     "shop", "blog", "news", "support", "help", "docs", "kb", "wiki", "remote",
     "desktop", "meet", "chat", "office", "hr", "admin", "manage", "billing"
@@ -107,6 +112,27 @@ def scrape_web_hints(url: str) -> list:
         pass
     return list(hints)
 
+def fetch_ct_logs(domain: str) -> list:
+    """
+    --- 1. The Shadow: Passive CT Log Harvesting ---
+    Queries public Certificate Transparency logs to find subdomains.
+    """
+    discovered = set()
+    try:
+        url = f"https://crt.sh/?q=%.{domain}&output=json"
+        req = urllib.request.Request(url, headers={'User-Agent': 'QuantumShield-OSINT/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            for entry in data:
+                # Name value can contain multiple domains separated by \n
+                names = entry.get('name_value', '').split('\n')
+                for name in names:
+                    if domain in name and "*" not in name:
+                        discovered.add(name.strip())
+    except Exception:
+        pass # Fail gracefully if crt.sh is down
+    return list(discovered)
+
 def probe_host(host: str, base_domain: str) -> dict:
     """
     Worker function to probe a single host.
@@ -154,6 +180,27 @@ def probe_host(host: str, base_domain: str) -> dict:
                 sans = extract_sans(tls_sock.getpeercert())
                 if sans:
                     asset_info["details"]["discovered_sans"] = sans
+                
+                # ── Service Fingerprinting (Phase 4/5) ──
+                try:
+                    # Capture Server Banner and Security Headers
+                    req = urllib.request.Request(f"https://{host}", method="HEAD", headers={'User-Agent': 'QuantumShield-Audit/1.0'})
+                    with urllib.request.urlopen(req, timeout=1) as resp:
+                        headers = resp.headers
+                        asset_info["details"]["server_banner"] = headers.get('Server', 'Unknown')
+                        
+                        # Security Header Audit
+                        sec_headers = {
+                            "HSTS": "Strict-Transport-Security" in headers,
+                            "CSP": "Content-Security-Policy" in headers,
+                            "X-Frame-Options": "X-Frame-Options" in headers
+                        }
+                        asset_info["details"]["security_audit"] = sec_headers
+                        
+                        if sec_headers["HSTS"]:
+                            asset_info["details"]["hsts_policy"] = headers.get("Strict-Transport-Security")
+                except Exception:
+                    pass
     except Exception:
         pass
 
@@ -174,71 +221,104 @@ def probe_host(host: str, base_domain: str) -> dict:
 
 def discover_pnb_assets(target_base: str) -> dict:
     """
-    --- 1. The Engine: Asynchronous DNS Resolution ---
-    Perform an expanded discovery probe matching Dashboard entropy counts.
+    Real asset discovery engine — DNS brute-force, zone transfer,
+    TLS SAN extraction, and CSP/robots.txt scraping.
+    Returns only genuinely discovered assets.
     """
-    from services.entropy import get_entropy
     if not target_base:
         return {"error": "Invalid target"}
 
     # Normalize target
     parsed_base = urlparse(target_base if target_base.startswith("http") else f"https://{target_base}")
     base_domain = parsed_base.hostname or target_base
-    
-    e = get_entropy(base_domain)
-    
-    # 1. Match Dashboard expected count: extra_count (cbom) + iot_count (data) + 5 core pillars
-    # matching g:\CYS\4\pnb\Qubit-Guard\backend\services\cbom_generator.py (extra_count = 50-450 + 5 pillars)
-    # matching g:\CYS\4\pnb\Qubit-Guard\backend\routers\data.py (iot_count = 5-50)
-    expected_extra = e.get_int(50, 450)
-    expected_iot = e.get_int(5, 50)
-    total_target = expected_extra + expected_iot + 5
-    
-    # Perform initial probe
+
+    # 1. Zone transfer attempt (jackpot if it works)
     axfr_results = check_zone_transfer(base_domain)
+
+    # 2. Build probe targets from ALL common subdomains + AXFR results
     targets_to_probe = set()
-    for sub in COMMON_SUBDOMAINS[:15]: # Limit real probes to focus on alignment
+    for sub in COMMON_SUBDOMAINS:  # Probe the full dictionary
         targets_to_probe.add(f"{sub}.{base_domain}" if sub else base_domain)
-    
+    for axfr_host in axfr_results:
+        targets_to_probe.add(axfr_host)
+
+    # 3. Web scraping for additional subdomain hints
+    web_hints = scrape_web_hints(f"https://{base_domain}")
+    for hint in web_hints:
+        if base_domain in hint:
+            targets_to_probe.add(hint)
+
+    # 4. Passive OSINT: Certificate Transparency Logs
+    ct_results = fetch_ct_logs(base_domain)
+    for ct_host in ct_results:
+        targets_to_probe.add(ct_host)
+
     discovered_assets = []
     seen_hosts = set()
-    
-    # Threaded Probing (Real)
-    with ThreadPoolExecutor(max_workers=20) as executor:
+
+    # 5. Threaded probing across all targets
+    with ThreadPoolExecutor(max_workers=30) as executor:
         future_to_host = {executor.submit(probe_host, host, base_domain): host for host in targets_to_probe}
         for future in as_completed(future_to_host):
             asset = future.result()
             if asset and asset["host"] not in seen_hosts:
                 discovered_assets.append(asset)
                 seen_hosts.add(asset["host"])
-    
-    # Fill remaining gaps with high-fidelity synthetic assets to match Dashboard exactly
-    pillars_pool = ["Web/TLS", "VPN/TLS", "API/TLS"]
-    attempts = 0
-    while len(discovered_assets) < total_target and attempts < 1000:
-        attempts += 1
-        # Create a realistic-looking synthetic subdomain
-        sub = f"edge-{e.get_int(100, 999)}"
-        if attempts % 10 == 0: sub = f"api-gw-{attempts//10}"
-        elif attempts % 15 == 0: sub = f"vpn-ext-{attempts//15}"
-        
-        host = f"{sub}.{base_domain}"
-        if host not in seen_hosts:
-            p_choice = e.choice(pillars_pool)
-            is_pqc = e.get_float(0, 1) > 0.8 # 20% PQC readiness
-            
-            discovered_assets.append({
-                "host": host,
-                "pillars": [p_choice],
-                "pqc_ready": is_pqc,
-                "details": {"type": "Holographic Asset (Cloud-Assessed)"}
-            })
-            seen_hosts.add(host)
+
+                # 5. Dynamic permutation: generate variants of found subdomains
+                found_sub = asset["host"].replace(f".{base_domain}", "")
+                for perm in generate_permutations(found_sub):
+                    perm_host = f"{perm}.{base_domain}"
+                    if perm_host not in seen_hosts:
+                        targets_to_probe.add(perm_host)
+
+        # 6. Probe permuted targets (second pass)
+        new_targets = targets_to_probe - seen_hosts
+        if new_targets:
+            perm_futures = {executor.submit(probe_host, host, base_domain): host for host in new_targets}
+            for future in as_completed(perm_futures):
+                asset = future.result()
+                if asset and asset["host"] not in seen_hosts:
+                    discovered_assets.append(asset)
+                    seen_hosts.add(asset["host"])
+
+    # 7. Extract SANs from discovered TLS assets for additional hosts
+    san_hosts = set()
+    for asset in discovered_assets:
+        for san in asset.get("details", {}).get("discovered_sans", []):
+            if base_domain in san and san not in seen_hosts:
+                san_hosts.add(san)
+
+    if san_hosts:
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            san_futures = {executor.submit(probe_host, host, base_domain): host for host in san_hosts}
+            for future in as_completed(san_futures):
+                asset = future.result()
+                if asset and asset["host"] not in seen_hosts:
+                    discovered_assets.append(asset)
+                    seen_hosts.add(asset["host"])
 
     return {
         "base_domain": base_domain,
         "assets": discovered_assets,
         "total_found": len(discovered_assets),
         "axfr_success": len(axfr_results) > 0,
-        "notes": f"Topology Synchronized with Global Audit Context (Seed: {e.seed})"
+        "notes": f"Probed {len(targets_to_probe)} candidates. {len(axfr_results)} AXFR records. {len(san_hosts)} SAN-derived hosts.",
+        "mobile_apps": fetch_mobile_apps_for_discovery(base_domain)
     }
+
+def fetch_mobile_apps_for_discovery(domain: str) -> list:
+    """Helper to find mobile apps relevant to the domain."""
+    from services.mobile_scanner import search_mobile_apps
+    # Extract organization keyword (e.g., 'pnb' from 'pnb.bank.in')
+    org = domain.split('.')[0]
+    apps = search_mobile_apps(org)
+    return [
+        {
+            "name": app["name"],
+            "id": app["id"],
+            "platform": app["platform"],
+            "status": app["status"]
+        }
+        for app in apps
+    ]

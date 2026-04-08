@@ -78,24 +78,30 @@ const Inventory = () => {
           <div className="is-lbl">Total Assets</div>
         </div>
         <div className="inv-stat info">
-          <div className="is-val">42</div>
-          <div className="is-lbl">Public Web Apps</div>
+          <div className="is-val">{inventoryData.filter(i => 
+            (i.category || '').toLowerCase().includes('application') || 
+            (i.component || '').toLowerCase().includes('web')
+          ).length}</div>
+          <div className="is-lbl">Web Pillar Assets</div>
         </div>
         <div className="inv-stat">
-          <div className="is-val">26</div>
-          <div className="is-lbl">APIs</div>
+          <div className="is-val">{inventoryData.filter(i => 
+            (i.category || '').toLowerCase().includes('library') || 
+            (i.component || '').toLowerCase().includes('api')
+          ).length}</div>
+          <div className="is-lbl">API Pillar Assets</div>
         </div>
         <div className="inv-stat">
-          <div className="is-val">37</div>
-          <div className="is-lbl">Servers</div>
+          <div className="is-val">{inventoryData.filter(i => !i.quantumSafe).length}</div>
+          <div className="is-lbl">Quantum Vulnerable</div>
         </div>
         <div className="inv-stat warn">
-          <div className="is-val">9</div>
-          <div className="is-lbl">Expiring Certs</div>
+          <div className="is-val">{inventoryData.filter(i => i.risk === 'High' || i.risk === 'Critical').length}</div>
+          <div className="is-lbl">Elevated Risk Assets</div>
         </div>
         <div className="inv-stat danger">
-          <div className="is-val">14</div>
-          <div className="is-lbl">High Risk</div>
+          <div className="is-val">{inventoryData.filter(i => i.risk === 'Critical').length}</div>
+          <div className="is-lbl">Critical Gap Analysis</div>
         </div>
       </div>
       <div className="card">
@@ -174,8 +180,25 @@ const Inventory = () => {
                     <div className="sc-lbl">PQC STATUS</div>
                   </div>
                 </div>
+
+                {selectedAsset.server_banner && selectedAsset.server_banner !== 'Unknown' && (
+                  <div style={{ padding: '10px', background: '#f8f9fa', borderRadius: '4px', borderLeft: '3px solid var(--pnb-gold)' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '4px' }}>SERVICE FINGERPRINT</div>
+                    <div style={{ fontSize: '12px', fontWeight: 600 }}>Server: {selectedAsset.server_banner}</div>
+                    {selectedAsset.security_audit && (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                        {['HSTS', 'CSP', 'X-Frame-Options'].map(h => (
+                          <span key={h} style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '10px', background: selectedAsset.security_audit[h] ? '#e6f4ea' : '#fce8e6', color: selectedAsset.security_audit[h] ? '#1e7e34' : '#c5221f', border: '1px solid currentColor' }}>
+                            {h}: {selectedAsset.security_audit[h] ? '✅' : '❌'}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <p style={{ fontSize: '12px', opacity: 0.8, lineHeight: '1.6' }}>
-                   This asset ({selectedAsset.category}) is currently part of the PNB {selectedAsset.risk} risk profile. 
+                   This asset ({selectedAsset.category}) is currently part of the {selectedAsset.risk} risk profile. 
                    Migration to {selectedAsset.quantumSafe ? 'completed' : 'required (FIPS 203)'}.
                 </p>
                 <button className="btn btn-gold btn-sm" style={{ width: '100%' }} onClick={() => alert('Opening Full Audit Trace...')}>⚡ View Full Audit Trace</button>

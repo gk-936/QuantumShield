@@ -422,4 +422,59 @@ html,body{height:100%;font-family:var(--body);font-size:14px;overflow:hidden;}
 
 /* Enhanced Table Contrast */
 .data-table td { color: #1A1A1A; font-weight: 500; }
-.data-table tr:hover td { background: rgba(200,134,10,0.08); }
+
+/* ── Innovation Button (Key Innovation) ───────────────────── */
+.btn-pqc-innovation {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #C0272D 0%, #8B1A1A 100%);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(139, 26, 26, 0.4);
+  animation: innovation-pulse-glow 3s infinite;
+}
+.btn-pqc-innovation:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 26, 26, 0.6);
+  background: linear-gradient(135deg, #D41A1A 0%, #A52020 100%);
+}
+.innovation-icon {
+  font-size: 24px;
+  background: rgba(255,255,255,0.1);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.innovation-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+.innovation-title {
+  font-family: var(--disp);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.innovation-arrow {
+  margin-left: auto;
+  font-size: 18px;
+  opacity: 0.6;
+}
+@keyframes innovation-pulse-glow {
+  0% { box-shadow: 0 4px 15px rgba(139, 26, 26, 0.4); }
+  50% { box-shadow: 0 4px 25px rgba(139, 26, 26, 0.8), 0 0 10px rgba(192, 39, 45, 0.4); }
+  100% { box-shadow: 0 4px 15px rgba(139, 26, 26, 0.4); }
+}

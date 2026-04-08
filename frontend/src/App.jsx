@@ -17,6 +17,7 @@ import QDaySimulator from './pages/QDaySimulator';
 import MobileScanner from './pages/MobileScanner';
 import PQCSelector from './pages/PQCSelector';
 import History from './pages/History';
+import OwaspAudit from './pages/OwaspAudit';
 import { ScanProvider } from './context/ScanContext';
 import { login, verifyToken } from './api';
 import './index.css';
@@ -92,7 +93,7 @@ function App() {
               <svg className="shield-svg" viewBox="0 0 80 90" fill="none">
                 <path d="M40 5L75 18V45C75 64 58 80 40 88C22 80 5 64 5 45V18L40 5Z" fill="url(#sg)" stroke="#D4A017" strokeWidth="2"/>
                 <defs><linearGradient id="sg" x1="0" y1="0" x2="80" y2="90" gradientUnits="userSpaceOnUse"><stop stopColor="#8B1A1A"/><stop offset="1" stopColor="#6B0F0F"/></linearGradient></defs>
-                <text x="40" y="52" fontFamily="Cinzel,serif" fontSize="18" fill="#D4A017" fontWeight="700" textAnchor="middle">PNB</text>
+                <text x="40" y="52" fontFamily="Cinzel,serif" fontSize="18" fill="#D4A017" fontWeight="700" textAnchor="middle">QG</text>
                 <text x="40" y="66" fontFamily="Exo 2,sans-serif" fontSize="7" fill="rgba(255,255,255,0.8)" textAnchor="middle" letterSpacing="1">PQC-Ready</text>
                 <circle cx="40" cy="30" r="10" fill="none" stroke="#D4A017" strokeWidth="1.5" strokeDasharray="3 2"/>
                 <path d="M34 30L38 34L47 25" stroke="#D4A017" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -116,10 +117,9 @@ function App() {
           <button className="login-btn" onClick={() => handleLogin(u, p)}>Sign In</button>
         </div>
         <div className="login-right">
-          <div style={{ fontSize: '13px', opacity: 0.8, letterSpacing: '3px', marginBottom: '8px' }}>PSB HACKATHON SERIES</div>
-          <div style={{ fontSize: '16px', opacity: 0.8, marginBottom: '6px' }}>In collaboration with IIT Kanpur</div>
-          <h1>PNB Cybersecurity<br/>Hackathon 2026</h1>
-          <h2 style={{ marginTop: '12px' }}>Cyber Innovation Begins</h2>
+          <div style={{ fontSize: '16px', opacity: 0.8, marginBottom: '6px' }}>Advanced Quantum Cryptographic Audit</div>
+          <h1>Universal Unified<br/>Security Auditor</h1>
+          <h2 style={{ marginTop: '12px' }}>Next-Gen PQC Protection</h2>
         </div>
       </div>
     );
@@ -146,6 +146,7 @@ function App() {
           <Route path="mobile" element={<MobileScanner />} />
           <Route path="pqc-selector" element={<PQCSelector />} />
           <Route path="history" element={<History />} />
+          <Route path="owasp-audit" element={<OwaspAudit />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -36,6 +36,7 @@ const Rating = () => {
               <tr><td>Tier-1 Elite</td><td>TLS 1.3 only; ML-KEM/DSA active</td></tr>
               <tr><td>Tier-2 Standard</td><td>TLS 1.2+; RSA-2048+; No PQC</td></tr>
               <tr><td>Tier-3 Legacy</td><td>TLS 1.0/1.1 enabled; weak ciphers</td></tr>
+              <tr><td>Tier-4 Critical</td><td>Cleartext protocols; RSA-1024 or lower; Critical exposure</td></tr>
             </tbody>
           </table>
         </div>

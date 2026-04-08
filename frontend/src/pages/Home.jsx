@@ -77,7 +77,8 @@ const Home = () => {
           <div style={{ marginBottom: '30px' }}>
             <svg viewBox="0 0 80 90" fill="none" style={{ width: '80px', margin: '0 auto' }}>
               <path d="M40 5L75 18V45C75 64 58 80 40 88C22 80 5 64 5 45V18L40 5Z" fill="#7B1A1A" stroke="#D4A017" strokeWidth="2"/>
-              <path d="M30 45L38 53L52 38" stroke="#D4A017" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+              <text x="40" y="55" fontFamily="Cinzel,serif" fontSize="18" fill="#D4A017" fontWeight="700" textAnchor="middle">QG</text>
+              <path d="M30 45L38 53L52 38" stroke="#D4A017" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
             </svg>
           </div>
           <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', color: '#2C1A00' }}>Universal Quantum Auditor</h1>
@@ -89,7 +90,7 @@ const Home = () => {
           <div style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
             <input 
               type="text" 
-              placeholder="Enter Target Bank URL (e.g. pnb.bank.in)" 
+              placeholder="Enter Target Infrastructure URL (e.g. sbi.co.in)" 
               value={targetUrl}
               onChange={(e) => {
                 setTargetUrl(e.target.value);
@@ -135,8 +136,8 @@ const Home = () => {
           </div>
           
           <div className="grid-3" style={{ marginTop: '50px', opacity: 0.6 }}>
-            <div style={{ fontSize: '11px' }}>🛡️ RBI Compliance Ready</div>
-            <div style={{ fontSize: '11px' }}>🔒 PQC Algorithmic Scan</div>
+            <div style={{ fontSize: '11px' }}>🛡️ Global Compliance Standards</div>
+            <div style={{ fontSize: '11px' }}>🔒 Multi-Pillar PQC Scan</div>
             <div style={{ fontSize: '11px' }}>📊 CBOM CycloneDX 1.5</div>
           </div>
         </div>

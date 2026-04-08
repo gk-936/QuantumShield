@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ApiMetrics from '../components/ApiMetrics';
 import { runTriadScan as apiRunScan, chatWithExpert } from '../api';
 import { useScan } from '../context/ScanContext';
 
 const TriadScanner = () => {
+  const navigate = useNavigate();
   const { activeData, setActiveData, switchScan, pendingScan, setPendingScan } = useScan();
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(!!activeData);
-  const [webTarget, setWebTarget] = useState(activeData?.webUrl || 'www.pnb.bank.in');
-  const [vpnTarget, setVpnTarget] = useState(activeData?.vpnUrl || 'vpn.pnb.bank.in');
-  const [apiTarget, setApiTarget] = useState(activeData?.apiUrl || 'api.pnb.bank.in');
+  const [webTarget, setWebTarget] = useState(activeData?.webUrl || '');
+  const [vpnTarget, setVpnTarget] = useState(activeData?.vpnUrl || '');
+  const [apiTarget, setApiTarget] = useState(activeData?.apiUrl || '');
   const [jwtToken, setJwtToken] = useState('eyJhbGciOiJSUzI1NiIs...');
   
   const [findings, setFindings] = useState(activeData?.findings || { web: [], vpn: [], api: [], firmware: [], archival: [] });
@@ -55,12 +57,13 @@ const TriadScanner = () => {
   }, [pendingScan, isScanning]);
 
   const handleTokenAnalysis = async () => {
-    const token = document.getElementById('jwt-token-sandbox').value;
-    if (!token) return;
+    if (!jwtToken) return;
     setAnalyzingToken(true);
+    setTokenAnalysis('');
     try {
-      const res = await chatWithExpert(`Analyze this JWT token for PQC vulnerabilities and provide a QVS score (100/10/0) and NIST recommendation: ${token}`);
-      setTokenAnalysis(res.data.text);
+      const res = await chatWithExpert(`Analyze this JWT token for PQC vulnerabilities and provide a QVS score (100/10/0) and NIST recommendation: ${jwtToken}`);
+      // Corrected from .text to .response to match remediation.py backend
+      setTokenAnalysis(res.data.response || 'No analysis available.');
     } catch (e) {
       setTokenAnalysis('AI Analysis Failed. Ensure API Key is set.');
     } finally {
@@ -156,8 +159,20 @@ const TriadScanner = () => {
           <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Port 443/TCP · REST / GraphQL / mTLS</span>
         </div>
         <div style={{ marginTop: '10px' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '6px' }}>⬡ API PILLAR — Paste a sample JWT or OAuth Bearer Token for signing-algorithm analysis</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+            <span>⬡ API PILLAR — Paste a sample JWT or OAuth Bearer Token for signing-algorithm analysis</span>
+            <button className="btn-pqc-text" style={{ fontSize: '10px', color: 'var(--pnb-red)', fontWeight: 700, cursor: 'pointer', background: 'none', border: 'none' }} onClick={handleTokenAnalysis} disabled={analyzingToken}>
+              {analyzingToken ? '⏳ ANALYZING...' : '🔍 ANALYZE TOKEN'}
+            </button>
+          </div>
           <textarea id="jwt-token-sandbox" value={jwtToken} onChange={(e) => setJwtToken(e.target.value)} className="form-input" style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }}></textarea>
+          
+          {tokenAnalysis && (
+            <div style={{ marginTop: '10px', padding: '12px', background: '#f9f9f9', borderRadius: '8px', borderLeft: '3px solid #C0272D', fontSize: '11px', whiteSpace: 'pre-wrap', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ fontWeight: 700, marginBottom: '4px', color: '#C0272D', fontSize: '10px', letterSpacing: '1px' }}>🛡️ PQC ARCHITECT ANALYSIS:</div>
+              {tokenAnalysis}
+            </div>
+          )}
         </div>
         <button
           id="initiate-scan-btn"
@@ -241,6 +256,21 @@ const TriadScanner = () => {
                         </div>
                       </div>
                     ))}
+                    {pillar === 'web' && findings[pillar].length > 0 && (
+                      <div className="owasp-innovation-cta" style={{ marginTop: '16px' }}>
+                        <button 
+                          className="btn-pqc-innovation" 
+                          onClick={() => navigate('/owasp-audit', { state: { findings, url: webTarget, riskScores } })}
+                        >
+                          <span className="innovation-icon">🛡️</span>
+                          <div style={{ textAlign: 'left' }}>
+                            <div className="innovation-label">KEY INNOVATION</div>
+                            <div className="innovation-title">AUDIT OWASP COMPLIANCE (2025)</div>
+                          </div>
+                          <span className="innovation-arrow">➔</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -289,20 +319,6 @@ const TriadScanner = () => {
             </div>
           )}
 
-          {/* ── JWT Sandbox ───────────────────────────────────────────── */}
-          <div className="jwt-sandbox card">
-              <div className="card-title" style={{ fontSize: '13px' }}><span className="ct-icon">🔍</span> JWT Quantum Analysis Sandbox</div>
-              <textarea className="form-input" placeholder="Paste JWT token here..." id="jwt-token-sandbox-results" defaultValue="eyJhbGciOiJSUzI1NiIs..." style={{ width: '100%', height: '60px', fontFamily: 'var(--mono)', color: '#1A8A1A', background: '#F8FFF8' }}></textarea>
-              <button className="btn btn-red btn-sm" style={{ marginTop: '8px' }} onClick={handleTokenAnalysis} disabled={analyzingToken}>
-                {analyzingToken ? '⏳ ANALYZING...' : '🔍 Analyze Token'}
-              </button>
-              {tokenAnalysis && (
-                <div style={{ marginTop: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '8px', borderLeft: '3px solid #C0272D', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
-                  <div style={{ fontWeight: 700, marginBottom: '6px', color: '#C0272D' }}>🛡️ Architect Analysis:</div>
-                  {tokenAnalysis}
-                </div>
-              )}
-          </div>
         </div>
       )}
     </div>

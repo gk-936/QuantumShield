@@ -45,7 +45,7 @@ const Reporting = () => {
     <div id="page-reporting" className="page-view" style={{ background: '#F4F7F9' }}>
       <div style={{ background: '#fff', borderBottom: '3px solid var(--pnb-red)', padding: '20px 40px', marginBottom: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         <h1 style={{ fontFamily: 'var(--disp)', fontSize: '24px', color: 'var(--pnb-red)', margin: 0 }}>OFFICIAL PQC COMPLIANCE & AUDIT REPORTING</h1>
-        <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Pursuant to NIST SP 800-215 and CERT-In Cyber Security Guidelines.</p>
+        <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Pursuant to NIST SP 800-215 and regional Cyber Security Guidelines.</p>
       </div>
 
       <div className="report-options" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', padding: '0 20px' }}>
@@ -54,7 +54,7 @@ const Reporting = () => {
              onClick={() => setReportType('executive')}>
           <div className="rc-icon" style={{ fontSize: '32px', marginBottom: '12px' }}>🏢</div>
           <div className="rc-title" style={{ fontWeight: 700, fontSize: '16px', color: '#333' }}>Executive Summary</div>
-          <div className="rc-desc" style={{ fontSize: '12px', color: '#777', marginTop: '8px' }}>High-level risk posture and PQC readiness score mapped to PNB internal KPIs.</div>
+          <div className="rc-desc" style={{ fontSize: '12px', color: '#777', marginTop: '8px' }}>High-level risk posture and PQC readiness score mapped to internal infrastructure KPIs.</div>
         </div>
         <div className={`report-card ${reportType === 'technical' ? 'active' : ''}`} 
              style={{ background: '#fff', border: reportType === 'technical' ? '2px solid var(--pnb-gold)' : '1px solid #ddd', padding: '24px', borderRadius: '12px', cursor: 'pointer' }}

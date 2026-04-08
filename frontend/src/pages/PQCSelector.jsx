@@ -493,6 +493,16 @@ const PQCSelector = () => {
   );
 };
 
+// ── Helpers ──
+const getAlgoColor = (algo) => {
+  const a = algo?.toUpperCase() || '';
+  if (a.includes('KEM') || a.includes('KYBER')) return '#0284c7'; // Blue
+  if (a.includes('DSA') || a.includes('DILITHIUM')) return '#9333ea'; // Purple
+  if (a.includes('XMSS') || a.includes('LMS')) return '#16a34a'; // Green
+  if (a.includes('BIKE') || a.includes('HQC')) return '#d97706'; // Orange
+  return '#666'; // Default Gray
+};
+
 // ── Styles ──
 const labelStyle = { display: 'block', fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--mono)', marginBottom: '6px', letterSpacing: '0.5px' };
 const metricBox = { background: 'rgba(0,0,0,0.03)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(0,0,0,0.06)' };

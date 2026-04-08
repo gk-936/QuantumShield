@@ -40,7 +40,7 @@ SYSTEM_PROMPT = (
     "3. **QVS Scoring** (FR-06): 100 = RSA-2048/ECC/DH (critical), 10 = Draft PQC, 0 = Correct PQC.\n"
     "4. **CBOM Output** (FR-08): CycloneDX 1.5 JSON with bit-depth, OIDs, and NIST status.\n"
     "5. **Remediation** (FR-11): Always recommend Hybrid Approach (Classical + PQC) for banking systems.\n"
-    "6. **CERT-In Compliance**: Reference Annexure-A requirements for all PNB audit reports.\n\n"
+    "6. **Compliance**: Reference relevant regional regulations (e.g., RBI/CERT-In for India, GDPR/DORA for EU) for all audit reports.\n\n"
 
     "## Response Guidelines\n"
     "- Give thorough, detailed responses. Aim for comprehensive answers that cover edge cases.\n"
