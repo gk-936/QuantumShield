@@ -260,12 +260,78 @@ def get_remediation(request: Request, db: Session = Depends(get_db)):
 @router.post("/report/send")
 async def send_report(req: EmailRequest, db: Session = Depends(get_db)):
     import asyncio
-    # Fetch some dummy scan results to populate the email
-    overall_qvs = 85  # Default or fetched from posture
+    
+    # Fetch latest scan result for URLs and detailed findings
+    latest_scan = db.query(ScanResult).order_by(ScanResult.timestamp.desc()).first()
+    
+    web_url = latest_scan.web_url if latest_scan else ""
+    vpn_url = latest_scan.vpn_url if latest_scan else ""
+    api_url = latest_scan.api_url if latest_scan else ""
+    
+    # Fetch CBOM data for this report
+    cbom_rows = db.query(CbomItem).all()
+    cbom_data = {
+        "components": [
+            {
+                "component": row.component,
+                "version": row.version,
+                "algorithm": row.algorithm,
+                "quantumSafe": row.quantum_safe,
+                "risk": row.risk,
+                "category": row.category,
+                "purl": row.purl,
+            } for row in cbom_rows
+        ]
+    }
+    
+    # Fetch risk scores from posture stats
+    posture_rows = db.query(PostureStat).all()
+    risk_scores = {
+        row.metric: row.value for row in posture_rows
+    }
+    
+    # Default or provide overall score
+    if "overall" not in risk_scores:
+        risk_scores["overall"] = 75
+    
+    # Fetch findings
+    cbom_vuln_rows = db.query(CbomVulnerabilitySummary).all()
     findings = {
-        "riskScores": {"overall": overall_qvs},
+        row.severity: row.count for row in cbom_vuln_rows
+    }
+    
+    # Parse scan findings by category
+    scan_findings = {}
+    if latest_scan:
+        try:
+            import json
+            scan_findings = json.loads(latest_scan.findings_json)
+        except:
+            scan_findings = {}
+    
+    # Categorize findings
+    web_findings = scan_findings.get("web", [])
+    api_findings = scan_findings.get("api", [])
+    vpn_findings = scan_findings.get("vpn", [])
+    mobile_findings = scan_findings.get("mobile", [])
+    iot_findings = scan_findings.get("iot", [])
+    
+    # Build complete scan data payload
+    scan_data = {
         "reportType": req.reportType,
-        "formats": req.formats
+        "formats": req.formats,
+        "riskScores": risk_scores,
+        "cbom": cbom_data,
+        "findings": findings,
+        "url": web_url,
+        "web_url": web_url,
+        "vpn_url": vpn_url,
+        "api_url": api_url,
+        "web_findings": web_findings,
+        "api_findings": api_findings,
+        "vpn_findings": vpn_findings,
+        "mobile_findings": mobile_findings,
+        "iot_findings": iot_findings,
     }
     
     # Check if SMTP is configured
@@ -276,7 +342,7 @@ async def send_report(req: EmailRequest, db: Session = Depends(get_db)):
     try:
         # 10-second hard timeout so the button never hangs forever
         success, error_detail = await asyncio.wait_for(
-            send_scan_report_async(req.email, findings),
+            send_scan_report_async(req.email, scan_data),
             timeout=10.0
         )
     except asyncio.TimeoutError:
@@ -294,8 +360,9 @@ async def send_report(req: EmailRequest, db: Session = Depends(get_db)):
     if success:
         return {
             "success": True, 
-            "message": f"Report sent to {req.email}",
-            "simulated": is_simulated or is_demo_fallback
+            "message": f"Professional PQC audit report generated and sent to {req.email}",
+            "simulated": is_simulated or is_demo_fallback,
+            "reportType": req.reportType
         }
     return {"success": False, "message": f"SMTP Error: {error_detail}"}
 
