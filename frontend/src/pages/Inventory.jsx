@@ -64,9 +64,9 @@ const Inventory = () => {
     try {
       const api = await import('../api');
       await api.runTriadScan({ target: 'Inventory Batch' });
-      alert('Batch scan initiated for all inventory assets.');
+      showToast('Batch scan initiated for all inventory assets.', 'info');
     } catch (err) {
-      alert('Scan service currently busy. Retry in 60s.');
+      showToast('Scan service currently busy. Retry in 60s.', 'error');
     } finally {
       setScanning(false);
     }
@@ -173,7 +173,6 @@ const Inventory = () => {
                   <td><span className={`risk-badge ${d.risk === 'Low' ? 'rb-low' : (d.risk === 'Critical' ? 'rb-critical' : 'rb-high')}`}>{d.risk}</span></td>
                    <td style={{ display: 'flex', gap: '5px' }}>
                     <button className="btn btn-outline btn-sm" style={{ padding: '2px 8px' }} onClick={() => handleView(d)}>View</button>
-                    <button className="btn btn-red btn-sm" style={{ padding: '2px 8px' }} onClick={() => handleDelete(d.purl)}>Delete</button>
                   </td>
                 </tr>
               ))}

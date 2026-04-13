@@ -44,7 +44,7 @@ const Home = () => {
       setError('Please provide a target bank URL.');
       return;
     }
-    
+
     if (!validateUrl(targetUrl)) {
       setError('Invalid URL format. Please provide a valid domain (e.g. pnb.bank.in).');
       return;
@@ -52,7 +52,7 @@ const Home = () => {
 
     setError('');
     let cleanUrl = targetUrl.replace('https://', '').replace('http://', '').split('/')[0];
-    
+
     setPendingScan({
       web: cleanUrl,
       vpn: `vpn.${cleanUrl}`,
@@ -72,21 +72,21 @@ const Home = () => {
         <div className="card" style={{ maxWidth: '700px', width: '100%', textAlign: 'center', padding: '60px 40px', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', border: '2px solid rgba(212,160,23,0.1)' }}>
           <div style={{ marginBottom: '30px' }}>
             <svg viewBox="0 0 80 90" fill="none" style={{ width: '80px', margin: '0 auto' }}>
-              <path d="M40 5L75 18V45C75 64 58 80 40 88C22 80 5 64 5 45V18L40 5Z" fill="#7B1A1A" stroke="#D4A017" strokeWidth="2"/>
+              <path d="M40 5L75 18V45C75 64 58 80 40 88C22 80 5 64 5 45V18L40 5Z" fill="#7B1A1A" stroke="#D4A017" strokeWidth="2" />
               <text x="40" y="55" fontFamily="Cinzel,serif" fontSize="18" fill="#D4A017" fontWeight="700" textAnchor="middle">QG</text>
-              <path d="M30 45L38 53L52 38" stroke="#D4A017" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+              <path d="M30 45L38 53L52 38" stroke="#D4A017" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
             </svg>
           </div>
           <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', color: '#2C1A00' }}>Universal Quantum Auditor</h1>
           <p style={{ color: '#666', fontSize: '15px', marginBottom: '40px', lineHeight: '1.6' }}>
-            Qubit-Guard Platform — Initiate a platform-wide Post-Quantum Cryptography (PQC) 
+            Qubit-Guard Platform — Initiate a platform-wide Post-Quantum Cryptography (PQC)
             compliance audit. Analyze TLS/SSL, VPN, and API layers across any banking infrastructure.
           </p>
-          
+
           <div style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
-            <input 
-              type="text" 
-              placeholder="Enter Target Infrastructure URL (e.g. sbi.co.in)" 
+            <input
+              type="text"
+              placeholder="Enter Target Infrastructure URL (e.g. sbi.co.in)"
               value={targetUrl}
               onChange={(e) => {
                 setTargetUrl(e.target.value);
@@ -111,7 +111,7 @@ const Home = () => {
                 ⚠️ {error}
               </div>
             )}
-            <button 
+            <button
               onClick={handleStartAudit}
               style={{
                 position: 'absolute',
@@ -147,7 +147,7 @@ const Home = () => {
               </div>
             </div>
           )}
-          
+
           <div className="grid-3" style={{ marginTop: '50px', opacity: 0.6 }}>
             <div style={{ fontSize: '11px' }}>🛡️ Global Compliance Standards</div>
             <div style={{ fontSize: '11px' }}>🔒 Multi-Pillar PQC Scan</div>
@@ -162,14 +162,14 @@ const Home = () => {
 
   return (
     <div id="page-home" className="page-view">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', color: '#fff' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>Audit Dashboard Overview</h2>
-          <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>Real-time PQC Readiness for {activeScanMetadata?.target}</div>
+          <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)', marginTop: '4px' }}>Real-time PQC Readiness for {activeScanMetadata?.target}</div>
         </div>
         {activeScanMetadata && (
-          <div style={{ padding: '6px 12px', background: '#C8860A22', border: '1px solid #C8860A44', borderRadius: '4px', fontSize: '11px', color: '#C8860A', fontWeight: 700 }}>
-             🛰️ AUDITING: {activeScanMetadata.target}
+          <div style={{ padding: '8px 14px', background: 'rgba(255, 255, 255, 0.95)', border: '2px solid var(--pnb-gold)', borderRadius: '6px', fontSize: '12px', color: 'var(--pnb-red)', fontWeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+            🛰️ AUDITING: {activeScanMetadata.target}
           </div>
         )}
       </div>
@@ -218,7 +218,7 @@ const Home = () => {
               <div className="stat-chip warn"><div className="sc-val">{data.inventory.logins.toLocaleString()}</div><div className="sc-lbl">Login Forms</div></div>
             </div>
             <div style={{ height: '160px' }}>
-              <Doughnut 
+              <Doughnut
                 data={{
                   labels: ['SSL', 'Software', 'IoT', 'Logins'],
                   datasets: [{
@@ -251,7 +251,7 @@ const Home = () => {
           <div className="card">
             <div className="card-title"><span className="ct-icon">⭐</span>Cyber Rating Distribution</div>
             <div style={{ height: '180px' }}>
-              <Bar 
+              <Bar
                 data={{
                   labels: ['Critical', 'High', 'Medium', 'Low'],
                   datasets: [{
@@ -274,7 +274,7 @@ const Home = () => {
             <div className="card-title"><span className="ct-icon">📋</span>CBOM Quick Overview</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, height: '130px' }}>
-                <Doughnut 
+                <Doughnut
                   data={{
                     labels: ['Critical', 'High', 'Medium', 'Low'],
                     datasets: [{

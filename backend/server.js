@@ -50,7 +50,7 @@ app.use((err, req, res, next) => {
 
 const server = app.listen(PORT, () => {
   console.log(`
-  🚀 QuantumShield.AI Backend is up!
+  🚀 Qubit-Guard Backend is up!
   📡 Port: ${PORT}
   🛡️ PQC Scanning Engine: ONLINE
   🧠 AI Analysis Service: ONLINE

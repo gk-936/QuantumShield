@@ -1,58 +1,61 @@
-# QuantumShield.AI — Product Features & Overview
+# Qubit-Guard — Prototype Features & Overview
 
-**QuantumShield.AI** is a comprehensive, enterprise-grade cybersecurity platform designed specifically for the Post-Quantum Cryptography (PQC) migration era. It provides Punjab National Bank (PNB) and other financial institutions with a unified "Triad" approach to identifying and remediating quantum-vulnerable cryptography.
+**Qubit-Guard** is a comprehensive cybersecurity platform developed for the Post-Quantum Cryptography (PQC) migration era. This functional prototype provides Punjab National Bank (PNB) with a unified approach to identifying and remediating quantum-vulnerable cryptography.
 
 ---
 
-## 🚀 Core Functionalities
+## 🚀 Working Prototype Functionalities
 
-### ⚡ 1. Triad Scanning Engine
-The heart of the platform, examining three critical attack surfaces simultaneously:
-- **Pillar A (Web/TLS)**: Real-time TLS handshake probing on web servers (Nginx, Apache, etc.) to detect legacy RSA/ECC certificates and recommend ML-KEM (Kyber) upgrades.
-- **Pillar B (VPN/TLS)**: Analysis of VPN gateway protocols (IKEv2, SSL-VPN) for RFC 9370 multi-key exchange support.
-- **Pillar C (API Security)**: Parses JWT tokens and mTLS certificates to identify quantum-forgeable signing algorithms (RS256, ES256).
+### ⚡ 1. Multi-Pillar PQC Scanning Engine
+While rooted in a "Triad" approach, the platform's core scanning engine categorizes cryptographic exposure across five key infrastructure pillars:
+- **Pillar A (Web/TLS) [LIVE]**: Performs real-time TLS handshake probing via Node.js network sockets to extract live certificate details, issuer info, and RSA/ECC key lengths from target domains.
+- **Pillar B (VPN/TLS) [SIMULATED]**: Demonstrates gateway analysis heuristics to identify vulnerable IKEv1/RSA configurations.
+- **Pillar C (API Security) [LIVE PARSER]**: Decodes and analyzes user-provided JWT tokens to identify quantum-forgeable signing algorithms (e.g., RS256) versus PQC-safe standards.
+- **Pillar D (Firmware Integrity) [MOCK]**: Framework representing stateless hash-based signing analysis (XMSS/LMS) for secure hardware and firmware updates.
+- **Pillar E (Archival Encryption) [MOCK]**: Framework representing BIKE/HQC KEM analysis designed to protect long-term archived data against Harvest-Now-Decrypt-Later (HNDL) attacks.
 
-### 🔍 2. PQC-Aware Asset Discovery (FR-01)
-Automated network discovery that goes beyond simple port scans:
-- **Pillar Classification**: Auto-buckets targets into Web, VPN, or API pillars.
-- **Prereq Probing**: Specifically detects TLS 1.3 support, a prerequisite for modern PQC-hybrid ciphers.
+### 🔍 2. PQC-Aware Asset Discovery
+- **Heuristic Scraping [LIVE]**: Actively crawls target domains to extract visible URLs, automatically bucketing them into `vpn.*`, `api.*`, or `web.*` infrastructure categories based on subdomain signatures.
 
-### 📦 3. Unified CycloneDX 1.5 CBOM (FR-08)
-Generates a structured **Cryptographic Bill of Materials (CBOM)** to meet CERT-In Annexure-A compliance.
-- **Enriched Metadata**: Captures bit-size (e.g., 2048-bit), cipher mode (GCM/CBC), and PQC-safe status.
-- **Multi-Format Export**: One-click download in **JSON**, **XML**, or **CSV** formats for integration into existing SIEMs (Splunk, QRadar).
+### 📦 3. Unified CycloneDX 1.5 CBOM Export
+Generates a structured **Cryptographic Bill of Materials (CBOM)** to meet CERT-In compliance.
+- **JSON Export [LIVE]**: Dynamically generates and allows immediate download of CycloneDX 1.5 formatted JSON files representing the scanned assets and identified algorithms.
 
-### 📊 4. Quantum Vulnerability Scoring (QVS) (FR-06)
-A proprietary 0–100 risk weighting system:
-- **Scoring**: RSA (100) → ECC (85) → Hybrid PQC (20) → Full ML-KEM/ML-DSA (0).
-- **Purpose**: Helps CISO-level stakeholders prioritize remediation efforts based on actual exposure.
+### 📊 4. Quantum Vulnerability Scoring & Q-Day Simulator
+- **Risk Scoring [LIVE LOGIC]**: Proprietary grading engine that evaluates scan results, aggressively flagging sub-2048 bit RSA keys as critical (100) and recommending ML-KEM/ML-DSA.
+- **HNDL Threat Simulator [UI]**: Visually calculates and demonstrates the "Time To Exposure" (TTE) impact based on Harvest-Now-Decrypt-Later concepts.
 
-### ☢️ 5. Q-Day HNDL Threat Simulator (FR-11)
-An interactive exposure model that visualizes the **Harvest-Now-Decrypt-Later** threat.
-- **Exposure Metric**: Calculates "Time To Exposure" (TTE) based on current organization-wide risk scores.
-- **Purpose**: Demonstrates the real-world business impact of quantum threats to executive decision-makers.
+### 🤖 5. AI-Assisted Remediation Engine (Gemini 2.5 Flash)
+- **Live LLM Integration [LIVE]**: Actively communicates with the Google Gemini 2.5 Flash API to analyze specific, raw Triad scan metrics and generate contextual summaries.
+- **Chatbot & Scripting [LIVE]**: Users can interact with a specialized PQC expert persona to generate customized Bash or Terraform remediation playbooks for immediate deployment.
 
-### 🔧 6. AI-Assisted Auto-Remediation
-Powered by **Gemini 2.5 Flash**:
-- **Expert Guidance**: Interactive chat focused specifically on NIST standards (ML-KEM/ML-DSA).
-- **Copy-Paste Snippets**: Generates deployment-ready code for Nginx hardening, OQS-OpenVPN patches, and Python-based JWT migration.
+### 📱 6. Universal Mobile App Presence Auditor
+- **App Discovery [MOCK]**: Queries the user-provided bank target, generates an inventory of associated mobile applications, and provides a simulated sandbox UI for cryptographic compliance analysis.
 
-### 📱 7. Mobile App Presence Scanner
-- **Verification**: Identifies official and verified PNB applications in the mobile ecosystem, ensuring users are directed away from unauthorized or "cloned" apps.
-- **Remediation**: Direct navigation to remediation steps for unauthorized app distribution.
+### 📅 7. Automated PQC Audit Reporting & Scheduling
+- **Task Scheduling [LIVE]**: Uses a reliable CRON engine to schedule automated "Fresh Scans" triggered precisely at user-designated times.
+- **Automated Dispatch [LIVE]**: Automatically executes the Triad Scan sequence + AI Analysis in the background and dispatches executive summaries directly via SMTP/Gmail integration.
 
-### 🛡️ 8. Enterprise Role-Based Access (RBAC)
-- **Admin**: Full control over scan initiation, user management, and configuration.
-- **Checker**: Read-only access to PQC ratings, CBOM reports, and audit logs.
+### 🛡️ 8. Secure Authentication Access
+- **JWT & Encryption [LIVE]**: Secures the prototype with standard JWT-based state retention and Bcrypt password hashing to protect the primary dashboard routes.
+
+### 🧠 9. PQC Smart Selector (ML Recommendation Engine)
+- **Context-Aware Selection [LIVE]**: Suggests optimal PQC algorithms (e.g., ML-KEM vs. FN-DSA) based on user-defined constraint sliders (bandwidth, latency, and device tier).
+- **Compliance Audit Table [LIVE]**: Connects algorithm recommendations directly to the official DST PQC Roadmap 2026 and CERT-In Annexure-A verifications.
+
+### 📋 10. OWASP Top 10 (2025) Audit Engine 
+- **Risk Mapping [LIVE]**: Instantly compares raw Triad Scan findings against the projected OWASP 2025 cryptographic failure categories. 
+- **Threat Vector Analysis [LIVE]**: Provides detailed attack/prevention strategy cards (e.g., A02:2025 Cryptographic Failures) mapped to relevant NIST standardization guidelines.
+
+### 🗄️ 11. Sovereign Asset Inventory & Scan History
+- **Asset Management [LIVE]**: A localized system to filter, manually add, and securely manage cryptographic components (Software, VPNs, APIs) with associated risk ratings.
+- **Audit Trails [LIVE]**: Maintains historical logs of all Triad Scans executed, allowing compliance officers to view temporal progress directly from the dashboard.
 
 ---
 
 ## 🛠 Technology Stack
-- **Frontend**: React 18, Chart.js, Vanilla CSS (Premium/Dynamic UI).
-- **Backend**: Python 3.12 (FastAPI), Node.js (Crypto Logic).
-- **AI**: Google Generative AI (Gemini 2.5 Flash).
-- **Database**: SQLite (Prototype Engine) with SQLAlchemy ORM.
-- **Standards**: NIST FIPS 203, FIPS 204, CycloneDX 1.5.
-
----
-**QuantumShield.AI** transforms abstract quantum risks into actionable cryptographic transitions.
+- **Frontend**: React 18, Chart.js, Vanilla CSS.
+- **Backend / Scanning**: Node.js (Express, TLS, Axios).
+- **AI Integration**: Google Generative AI (Gemini 2.5 Flash).
+- **Database**: Local JSON Persistence for lightweight prototype portability.
+- **Standards Applied**: NIST FIPS 203, FIPS 204, CycloneDX 1.5.

@@ -36,7 +36,7 @@ This document outlines the core aspects to be presented to the PNB evaluator for
 - **Important Functionalities**: Compiles Triad scan results, CBOMs, and QVS ratings into a structured PDF. Integrates with SMTP (Gmail deployment) for automated dispatch directly to the evaluator/CISO inbox.
 
 ### 8. Triad Scanner (Core Engine)
-- **Features**: The heart of QuantumShield.AI, examining critical attack surfaces concurrently.
+- **Features**: The heart of Qubit-Guard, examining critical attack surfaces concurrently.
 - **Important Functionalities**:
   - **Pillar A (Web/TLS)**: Real-time TLS handshake probing on web servers (e.g., Nginx, Apache) to detect legacy certificates.
   - **Pillar B (VPN/TLS)**: Analysis of VPN gateway protocols (IKEv2, SSL-VPN) for RFC 9370 multi-key exchange support.

@@ -133,7 +133,7 @@ def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url
             "timestamp": datetime.utcnow().isoformat(),
             "tools": [
                 {
-                    "vendor": "QuantumShield.AI",
+                    "vendor": "Qubit-Guard",
                     "name": "Triad Scanner Engine",
                     "version": "2.0.0",
                 }
@@ -162,7 +162,7 @@ def generate_cyclonedx(items: list) -> dict:
         "version": 1,
         "metadata": {
             "timestamp": datetime.utcnow().isoformat(),
-            "tools": [{"vendor": "QuantumShield.AI", "name": "Triad Engine", "version": "2.0.0"}],
+            "tools": [{"vendor": "Qubit-Guard", "name": "Triad Engine", "version": "2.0.0"}],
             "authors": [{"name": "QuantumShield Auditor", "email": "auditor@pnb.bank.in"}],
         },
         "components": [

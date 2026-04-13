@@ -88,4 +88,9 @@ class Schedule(Base):
     id = Column(Integer, primary_key=True, index=True)
     frequency = Column(String(50), nullable=False)
     targets_json = Column(Text, default="{}")
+    scheduled_time = Column(String(10), nullable=True)  # Format: "HH:MM"
+    email = Column(String(255), nullable=True)
+    report_type = Column(String(50), default="executive")
+    is_active = Column(Boolean, default=True)
+    last_run_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())

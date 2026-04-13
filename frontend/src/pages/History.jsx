@@ -11,13 +11,15 @@ const History = () => {
 
     return (
         <div className="page-view animate-fade-in">
-            <div className="card-title">
-                <span className="ct-icon">📜</span> 
-                Scan Execution History
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#fff', fontFamily: 'var(--disp)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="ct-icon">📜</span> 
+                    Scan Execution History
+                </h2>
                 <button 
                   onClick={fetchHistory} 
-                  className="btn btn-sm btn-outline" 
-                  style={{ float: 'right', fontSize: '10px' }}
+                  className="btn btn-sm" 
+                  style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
                 >
                   🔄 Refresh
                 </button>

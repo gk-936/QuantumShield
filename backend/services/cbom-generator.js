@@ -13,7 +13,7 @@ function generateCycloneDX(items) {
             timestamp: timestamp,
             tools: [
                 {
-                    vendor: "QuantumShield.AI",
+                    vendor: "Qubit-Guard",
                     name: "Triad Engine",
                     version: "1.0.0"
                 }

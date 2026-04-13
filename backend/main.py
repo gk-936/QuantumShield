@@ -1,5 +1,5 @@
 """
-QuantumShield.AI — FastAPI Backend Entry Point
+Qubit-Guard — FastAPI Backend Entry Point
 """
 
 import os
@@ -20,6 +20,11 @@ async def lifespan(app: FastAPI):
     # Startup: create tables & seed
     Base.metadata.create_all(bind=engine)
     seed()
+
+    # Start the background reporting worker
+    from services.worker import start_worker
+    start_worker()
+
     print("""
     [*] Qubit-Guard.AI Backend is up!
     [>] Framework: FastAPI + Uvicorn

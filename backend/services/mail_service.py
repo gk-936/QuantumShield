@@ -51,18 +51,44 @@ def generate_professional_pdf(report_type: str, scan_data: dict, db: Session = N
     if "cbom" in scan_data:
         cbom_items = scan_data["cbom"].get("components", [])
     
+    # Normalize items (handle both DB objects and JSON dicts)
+    normalized_items = []
+    for c in cbom_items:
+        if not isinstance(c, dict):
+            # ORM object conversion
+            normalized_items.append({
+                "component": getattr(c, "component", "Unknown"),
+                "version": getattr(c, "version", "N/A"),
+                "algorithm": getattr(c, "algorithm", "Unknown"),
+                "quantumSafe": getattr(c, "quantum_safe", False),
+                "risk": getattr(c, "risk", "Medium"),
+                "purl": getattr(c, "purl", "N/A"),
+            })
+        else:
+            # Already a dict, but ensure quantumSafe exists (handle DB-sourced dicts)
+            if "quantum_safe" in c and "quantumSafe" not in c:
+                c["quantumSafe"] = c["quantum_safe"]
+            normalized_items.append(c)
+    
+    cbom_items = normalized_items
+
     # Separate quantum-safe and vulnerable components
     vulnerable_components = [c for c in cbom_items if not c.get("quantumSafe", False)]
     safe_components = [c for c in cbom_items if c.get("quantumSafe", True)]
     
+    # Filter scan_data for unpacking to avoid argument conflicts
+    # 'findings' is the primary conflict, but we filter others to be safe.
+    # risk_scores, findings, vulnerable_components, etc. are passed positionally.
+    report_kwargs = {k: v for k, v in scan_data.items() if k not in ["findings", "riskScores", "cbom"]}
+    
     if report_type == "EXECUTIVE":
-        content = _generate_executive_report(risk_scores, findings, vulnerable_components, timestamp, bank_name, **scan_data)
+        content = _generate_executive_report(risk_scores, findings, cbom_items, timestamp, bank_name, **report_kwargs)
     elif report_type == "TECHNICAL":
-        content = _generate_technical_cbom_report(vulnerable_components, safe_components, risk_scores, timestamp, bank_name, **scan_data)
+        content = _generate_technical_cbom_report(vulnerable_components, safe_components, risk_scores, timestamp, bank_name, **report_kwargs)
     elif report_type == "COMPLIANCE":
-        content = _generate_compliance_audit_report(vulnerable_components, risk_scores, timestamp, bank_name, **scan_data)
+        content = _generate_compliance_audit_report(vulnerable_components, risk_scores, timestamp, bank_name, **report_kwargs)
     else:
-        content = _generate_executive_report(risk_scores, findings, vulnerable_components, timestamp, bank_name, **scan_data)
+        content = _generate_executive_report(risk_scores, findings, cbom_items, timestamp, bank_name, **report_kwargs)
     
     return _build_pdf_binary(content, bank_name)
 
@@ -114,7 +140,7 @@ def _extract_bank_name(url: str) -> str:
         return "Organization"
 
 
-def _generate_executive_report(risk_scores: dict, findings: dict, vulnerabilities: list, timestamp: datetime, bank_name: str = "Organization", **kwargs) -> str:
+def _generate_executive_report(risk_scores: dict, findings: dict, components: list, timestamp: datetime, bank_name: str = "Organization", **kwargs) -> str:
     """Executive Summary: High-level risk posture and recommendations."""
     
     overall_qvs = risk_scores.get("overall", 75)
@@ -141,11 +167,43 @@ def _generate_executive_report(risk_scores: dict, findings: dict, vulnerabilitie
     else:
         risk_level = "LOW"
     
-    critical_count = len([v for v in vulnerabilities if v.get("risk") == "Critical"])
-    high_count = len([v for v in vulnerabilities if v.get("risk") == "High"])
-    medium_count = len([v for v in vulnerabilities if v.get("risk") == "Medium"])
+    # CALCULATE INTEGRATED COUNTS (Findings + CBOM Risks)
+    critical_count = 0
+    high_count = 0
+    medium_count = 0
+    
+    # 1. Count from findings (scanner results)
+    all_findings_list = []
+    if isinstance(findings, dict):
+        for pillar_findings in findings.values():
+            if isinstance(pillar_findings, list):
+                all_findings_list.extend(pillar_findings)
+    elif isinstance(findings, list):
+        all_findings_list = findings
+
+    for f in all_findings_list:
+        sev = str(f.get("severity") or f.get("risk") or "").lower()
+        if sev == "critical": critical_count += 1
+        elif sev == "high": high_count += 1
+        elif sev == "medium": medium_count += 1
+    
+    # 2. Count from components (CBOM inventory)
+    for c in components:
+        # If the component specifically lists a risk level, count it
+        risk = str(c.get("risk") or "").lower()
+        if risk == "critical": critical_count += 1
+        elif risk == "high": high_count += 1
+        elif risk == "medium": medium_count += 1
+        # Fallback if risk key is missing but it's not quantum safe
+        elif not c.get("quantumSafe", True) and not risk:
+            # Default to High if it's vulnerable and no specific risk level set
+            high_count += 1
+            
+    quantum_safe_count = len([c for c in components if c.get("quantumSafe")])
     
     content = f"""
+OVERALL QUANTUM VULNERABILITY SCORE (QVS): {overall_qvs}/100
+
 EXECUTIVE SUMMARY: QUANTUM READINESS AUDIT
 {bank_name} — Post-Quantum Cryptography Initiative
 {timestamp.strftime('%B %d, %Y at %H:%M UTC')}
@@ -176,7 +234,7 @@ VULNERABILITY SUMMARY:
 ├─ CRITICAL Issues:  {critical_count}
 ├─ HIGH Severity:    {high_count}
 ├─ MEDIUM Severity:  {medium_count}
-└─ QUANTUM-SAFE Components: {len([v for v in vulnerabilities if v.get('quantumSafe')])} Active
+└─ QUANTUM-SAFE Components: {quantum_safe_count} Active
 
 COMPLIANCE STATUS:
 ├─ NIST SP 800-215:           {100-overall_qvs}% Compliant (Gap: {overall_qvs}%)
@@ -307,13 +365,23 @@ QUANTUM-VULNERABLE COMPONENTS ({len(vulnerable)} items):
         algo = comp.get("algorithm", "RSA")
         purl = comp.get("purl", "N/A")
         risk = comp.get("risk", "High")
+        category = comp.get("category", "")
+        
+        name_cat_algo = f"{name} {category} {algo}".upper()
+        
+        if any(x in name_cat_algo for x in ["VPN", "WEB", "TLS", "NETWORK", "KEM", "EXCHANGE", "ECDHE", "DHE"]):
+            target_variant = "ML-KEM (FIPS 203) - Key Encapsulation"
+        elif any(x in name_cat_algo for x in ["API", "FIRMWARE", "JWT", "SIGN", "ECDSA", "EDDSA"]):
+            target_variant = "ML-DSA (FIPS 204) - Digital Signature"
+        else:
+            target_variant = "ML-KEM (FIPS 203) or ML-DSA (FIPS 204)"
         
         content += f"""
 {i}. {name} v{version}
    Algorithm: {algo}
    PURL: {purl}
    Risk Level: {risk}
-   Action: Upgrade to post-quantum variant
+   Action: Upgrade to {target_variant}
 """
     
     content += f"""
@@ -676,6 +744,8 @@ def _build_email_message(smtp_user: str, email: str, scan_data: dict, db: Sessio
     report_type = scan_data.get("reportType", "EXECUTIVE")
     summary = scan_data.get("riskScores", {}).get("overall", "N/A")
 
+    bank_name = _extract_bank_name(scan_data.get("url", ""))
+
     msg = MIMEMultipart("mixed")
     msg["From"] = smtp_user
     msg["To"] = email
@@ -683,7 +753,7 @@ def _build_email_message(smtp_user: str, email: str, scan_data: dict, db: Sessio
 
     # Professional email body
     text = f"""
-PNB Qubit-Guard Platform — Professional Security Audit
+{bank_name} Qubit-Guard Platform — Professional Security Audit
 Hello Stakeholder,
 
 Your comprehensive Post-Quantum Cryptography audit is complete.
@@ -702,8 +772,8 @@ Next Steps:
 2. Prioritize remediation by severity level
 3. Contact security team for implementation support
 
-Research and Development: PNB Hackathon 2026
-Punjab National Bank — Post-Quantum Readiness Initiative
+Research and Development: Qubit-Guard v2.0
+{bank_name} — Post-Quantum Readiness Initiative
 """
     
     html = f"""
@@ -711,7 +781,7 @@ Punjab National Bank — Post-Quantum Readiness Initiative
 <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
     <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
         <h2 style="color: #800000; border-bottom: 2px solid #C0272D; padding-bottom: 10px;">
-            🛡️ PNB Qubit-Guard Platform
+            🛡️ {bank_name} Qubit-Guard Platform
         </h2>
         <p><strong>Post-Quantum Cryptography Audit Report</strong></p>
         <p>Dear Administrator,</p>
@@ -734,7 +804,7 @@ Punjab National Bank — Post-Quantum Readiness Initiative
         
         <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
             <strong>Classification:</strong> CONFIDENTIAL - RESTRICTED DISTRIBUTION<br>
-            Generated by QuantumShield.AI v2.0 | PNB Hackathon 2026
+            Generated by Qubit-Guard v2.0 | {bank_name}
         </p>
     </div>
 </body>

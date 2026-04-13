@@ -9,6 +9,9 @@ const Reporting = () => {
   const [reportType, setReportType] = useState('executive');
   const [isScheduled, setIsScheduled] = useState(false);
   const [email, setEmail] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('09:00');
+  const [scheduledEmail, setScheduledEmail] = useState('');
+  const [frequency, setFrequency] = useState('daily');
   const [sending, setSending] = useState(false);
   const [formats, setFormats] = useState({ pdf: true, excel: false, json: false });
 
@@ -50,14 +53,25 @@ const Reporting = () => {
   };
 
   const handleSaveSchedule = async () => {
+    if (isScheduled && !scheduledEmail && !email) {
+      showToast('Recipient email required for automated schedule.', 'error');
+      return;
+    }
     try {
       const payload = {
-        frequency: isScheduled ? 'daily' : 'once',
-        targets: activeScanMetadata || {}
+        frequency,
+        targets: activeScanMetadata || {
+          webUrl: "www.pnb.bank.in",
+          vpnUrl: "vpn.pnb.bank.in",
+          apiUrl: "api.pnb.bank.in"
+        },
+        scheduled_time: scheduledTime,
+        email: scheduledEmail || email,
+        report_type: reportType
       };
       const res = await createSchedule(payload);
       if (res.data.success) {
-        showToast('Scanning schedule persisted in ledger.', 'success');
+        showToast(`Success! Fresh ${reportType.toUpperCase()} scan scheduled for ${scheduledTime} (${frequency}) with email dispatch to ${payload.email}.`, 'success');
       }
     } catch (err) {
       console.error(err);
@@ -122,18 +136,46 @@ const Reporting = () => {
                      style={{ width: '50px', height: '26px', background: isScheduled ? 'var(--pnb-gold)' : '#ccc', borderRadius: '13px', position: 'relative', cursor: 'pointer' }}>
                   <div style={{ position: 'absolute', left: isScheduled ? '26px' : '4px', top: '4px', width: '18px', height: '18px', background: '#fff', borderRadius: '50%', transition: 'all 0.2s' }}></div>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600 }}>Enable Periodic Scanning & Logging</div>
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>Enable Automated Fresh Scanning & Email Updates</div>
               </div>
+              <p style={{ fontSize: '11px', color: '#888', marginTop: '5px' }}>* Triggers a comprehensive Triad Scan + AI Analysis + Email dispatch at the specified time.</p>
             </div>
           </div>
           <div style={{ opacity: isScheduled ? 1 : 0.5, pointerEvents: isScheduled ? 'auto' : 'none', borderLeft: '1px solid #eee', paddingLeft: '40px' }}>
             <div className="form-group">
-              <label className="form-label" style={{ color: '#1A5ACC', fontWeight: 700 }}>3. SCHEDULE DENSITY</label>
-              <select className="form-select" style={{ marginTop: '10px', width: '100%', padding: '12px' }}>
-                <option>Daily Audit (24-hour cycle)</option>
-                <option>Weekly Compliance Pulse (Monday 04:00)</option>
-                <option>Monthly Board Report (1st 08:00)</option>
-              </select>
+              <label className="form-label" style={{ color: '#1A5ACC', fontWeight: 700 }}>3. AUTOMATION SETTINGS</label>
+              <div style={{ marginTop: '10px' }}>
+                <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px', color: '#666' }}>Execution Time (24h)</label>
+                <input 
+                  type="time" 
+                  className="form-input" 
+                  value={scheduledTime} 
+                  onChange={e => setScheduledTime(e.target.value)}
+                  style={{ width: '100%', padding: '10px', marginBottom: '15px' }}
+                />
+                
+                <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px', color: '#666' }}>Recurrence Frequency</label>
+                <select 
+                  className="form-select" 
+                  style={{ width: '100%', padding: '10px', marginBottom: '15px' }}
+                  value={frequency}
+                  onChange={e => setFrequency(e.target.value)}
+                >
+                  <option value="daily">Daily Fresh Audit</option>
+                  <option value="weekly">Weekly Compliance Pulse</option>
+                  <option value="once">Once (Scheduled Single Run)</option>
+                </select>
+
+                <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px', color: '#666' }}>Report Recipient</label>
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  placeholder="Automated dispatch email" 
+                  value={scheduledEmail} 
+                  onChange={e => setScheduledEmail(e.target.value)}
+                  style={{ width: '100%', padding: '10px' }}
+                />
+              </div>
             </div>
           </div>
         </div>

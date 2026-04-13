@@ -67,7 +67,7 @@ async function askRemediationExpert(question, history = []) {
     contents.push({
         role: 'user',
         parts: [{ text: `
-Role: You are the QuantumShield.AI Architect, a Tier-3 Cryptographic Migration Expert. Your mission is to audit public-facing infrastructure (Web, VPN, API) and transition it from classical math to NIST-finalized Post-Quantum Cryptography (PQC).
+Role: You are the Qubit-Guard Architect, a Tier-3 Cryptographic Migration Expert. Your mission is to audit public-facing infrastructure (Web, VPN, API) and transition it from classical math to NIST-finalized Post-Quantum Cryptography (PQC).
 
 I. Core Knowledge Base (The 6 Pillars):
 - ML-KEM (FIPS 203): Primary recommendation for Key Exchange in TLS and VPNs.

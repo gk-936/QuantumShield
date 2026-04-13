@@ -347,16 +347,34 @@ async def send_report(req: EmailRequest, db: Session = Depends(get_db)):
         row.severity: row.count for row in cbom_vuln_rows
     }
     
-    # Parse scan findings by category
+    # Parse scan findings and scores by category
     scan_findings = {}
+    scan_data_from_json = {}
     if latest_scan:
         try:
             import json
             scan_findings = json.loads(latest_scan.findings_json)
-        except:
-            scan_findings = {}
+            risk_scores = json.loads(latest_scan.risk_scores_json)
+            cbom_data = json.loads(latest_scan.cbom_json)
+            
+            # Map simplified findings for the summary counts
+            # findings is used for the summary table counts in some reports
+            all_findings = []
+            for pillar in scan_findings.values():
+                all_findings.extend(pillar)
+            
+            summary_findings = {
+                "critical": sum(1 for f in all_findings if f.get("severity") == "critical" or f.get("risk") == "Critical"),
+                "high": sum(1 for f in all_findings if f.get("severity") == "high" or f.get("risk") == "High"),
+                "medium": sum(1 for f in all_findings if f.get("severity") == "medium" or f.get("risk") == "Medium"),
+                "low": sum(1 for f in all_findings if f.get("severity") == "info" or f.get("severity") == "low" or f.get("risk") == "Low"),
+            }
+            findings = summary_findings
+            
+        except Exception as e:
+            print(f"[REPORTS] Error parsing scan JSON: {e}")
     
-    # Categorize findings
+    # Categorize findings for the detailed section
     web_findings = scan_findings.get("web", [])
     api_findings = scan_findings.get("api", [])
     vpn_findings = scan_findings.get("vpn", [])
@@ -451,20 +469,16 @@ def download_pdf_report(type: str = "executive", db: Session = Depends(get_db)):
     if latest_scan:
         try:
             scan_data["findings"] = json.loads(latest_scan.findings_json)
-            # Flatten findings for the summary counts
-            all_findings = []
-            for pillar in scan_data["findings"].values():
-                all_findings.extend(pillar)
-            
             scan_data["riskScores"] = json.loads(latest_scan.risk_scores_json)
+            scan_data["cbom"] = json.loads(latest_scan.cbom_json)
             
             # Map simplified findings for the PDF generator internal logic
             scan_data["web_findings"] = scan_data["findings"].get("web", [])
             scan_data["api_findings"] = scan_data["findings"].get("api", [])
             scan_data["vpn_findings"] = scan_data["findings"].get("vpn", [])
             scan_data["mobile_findings"] = scan_data["findings"].get("mobile", [])
-        except:
-            pass
+        except Exception as e:
+            print(f"[REPORTS] Error parsing scan JSON for download: {e}")
 
     # Generate PDF binary
     pdf_bytes = generate_professional_pdf(type, scan_data, db)

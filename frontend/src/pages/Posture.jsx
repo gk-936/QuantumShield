@@ -80,7 +80,7 @@ const Posture = () => {
               <td style={{ fontFamily: 'var(--mono)', fontWeight: 700 }}>{activeData?.findings?.api?.[0]?.issue?.includes('JWT') ? 'RSA Signature' : 'ECDSA (P-256)'}</td>
               <td><span style={{ color: (activeData?.riskScores?.api > 50 ? '#C0272D' : '#1A8A1A'), fontWeight: 700 }}>{activeData?.riskScores?.api ?? 100}</span></td>
               <td>{activeData?.riskScores?.api < 20 ? '✅ FIPS 204 Ready' : '⚠️ Upgrade Recommended'}</td>
-              <td><button className="btn btn-gold btn-sm" onClick={() => navigate('/remediation')}>Fix Case</button></td>
+              <td><button className="btn btn-gold btn-sm" onClick={() => navigate('/pqc-selector')}>Fix Case</button></td>
             </tr>
           </tbody>
         </table>
