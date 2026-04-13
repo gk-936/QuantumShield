@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import ApiMetrics from '../components/ApiMetrics';
 import { runTriadScan as apiRunScan, chatWithExpert } from '../api';
 import { useScan } from '../context/ScanContext';
+import { useToast } from '../context/ToastContext';
 
 const TriadScanner = () => {
   const navigate = useNavigate();
   const { activeData, setActiveData, switchScan, pendingScan, setPendingScan } = useScan();
+  const { showToast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(!!activeData);
   const [webTarget, setWebTarget] = useState(activeData?.webUrl || '');
@@ -108,7 +110,7 @@ const TriadScanner = () => {
       }
     } catch (err) {
       console.error('Scan Failed:', err);
-      alert('Scan failed. Ensure the Python/FastAPI backend is running on port 5006.');
+      showToast('Scan failed. Core engine unreachable.', 'error');
     } finally {
       setIsScanning(false);
       setScanProgress('');

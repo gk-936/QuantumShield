@@ -24,10 +24,6 @@ const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!activeScanId) {
-        setLoading(false);
-        return;
-      }
       try {
         setLoading(true);
         const response = await getDashboardData();
@@ -134,6 +130,23 @@ const Home = () => {
               START AUDIT
             </button>
           </div>
+
+          {data && (
+            <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
+              <div className="stat-chip" style={{ minWidth: '120px' }}>
+                <div className="sc-val" style={{ fontSize: '20px' }}>{data.summary.assetsDiscovery.value}</div>
+                <div className="sc-lbl">GLOBAL ASSETS</div>
+              </div>
+              <div className="stat-chip danger" style={{ minWidth: '120px' }}>
+                <div className="sc-val" style={{ fontSize: '20px' }}>{data.summary.cbomVulnerabilities.value}</div>
+                <div className="sc-lbl">VULNERABILITIES</div>
+              </div>
+              <div className="stat-chip info" style={{ minWidth: '120px' }}>
+                <div className="sc-val" style={{ fontSize: '20px' }}>{data.inventory.software}</div>
+                <div className="sc-lbl">SOFTWARE ITEMS</div>
+              </div>
+            </div>
+          )}
           
           <div className="grid-3" style={{ marginTop: '50px', opacity: 0.6 }}>
             <div style={{ fontSize: '11px' }}>🛡️ Global Compliance Standards</div>

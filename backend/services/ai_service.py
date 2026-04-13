@@ -6,6 +6,7 @@ Powered by India's own Sarvam AI (sarvam-105b).
 
 import os
 import httpx
+from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -53,7 +54,7 @@ SYSTEM_PROMPT = (
 )
 
 
-async def ask_remediation_expert(question: str, history: list | None = None) -> dict:
+async def ask_remediation_expert(question: str, history: Optional[list] = None) -> dict:
     """Interactive chat for PQC remediation expert queries via Sarvam AI."""
     if not SARVAM_API_KEY:
         return {"text": "AI Expert Offline. Please configure SARVAM_API_KEY in .env to enable the PQC Remediation Assistant."}

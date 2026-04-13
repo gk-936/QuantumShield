@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { getInventoryData } from '../api';
+import { useNavigate } from 'react-router-dom';
+import { getInventoryData, addInventoryItem, deleteInventoryItem } from '../api';
 import { useScan } from '../context/ScanContext';
+import { useToast } from '../context/ToastContext';
 
 const Inventory = () => {
   const { activeScanId } = useScan();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
   const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [scanning, setScanning] = useState(false);
 
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newAsset, setNewAsset] = useState({
+    component: '',
+    version: '',
+    algorithm: '',
+    category: 'Software',
+    quantum_safe: false,
+    risk: 'High'
+  });
 
   const fetchData = async () => {
     setLoading(true);
@@ -32,14 +45,13 @@ const Inventory = () => {
   const handleDelete = async (purl) => {
     if (!window.confirm(`Are you sure you want to remove asset ${purl}?`)) return;
     try {
-      const { deleteInventoryItem } = await import('../api');
       const res = await deleteInventoryItem(purl);
       if (res.data.success) {
-        alert('Asset removed successfully.');
+        showToast('Asset removed from sovereign inventory.', 'success');
         fetchData();
       }
     } catch (err) {
-      alert('Failed to delete asset. Please check server logs.');
+      showToast('Extraction failed. Persistent record locked.', 'error');
     }
   };
 
@@ -57,6 +69,22 @@ const Inventory = () => {
       alert('Scan service currently busy. Retry in 60s.');
     } finally {
       setScanning(false);
+    }
+  };
+
+  const handleAddAsset = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await addInventoryItem(newAsset);
+      if (res.data.success) {
+        showToast('Asset encrypted and added to vault.', 'success');
+        setIsAddModalOpen(false);
+        setNewAsset({ component: '', version: '', algorithm: '', category: 'Software', quantum_safe: false, risk: 'High' });
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error persisting asset. Check entropy source.', 'error');
     }
   };
 
@@ -108,7 +136,7 @@ const Inventory = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div className="card-title" style={{ margin: 0 }}>Asset Inventory</div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn btn-gold btn-sm" onClick={() => alert('Opening Add Asset Wizard...')}>+ Add Asset</button>
+            <button className="btn btn-gold btn-sm" onClick={() => setIsAddModalOpen(true)}>+ Add Asset</button>
             <button className="btn btn-outline btn-sm" onClick={handleScanAll} disabled={scanning}>{scanning ? 'Scanning...' : 'Scan All ▶'}</button>
             <input 
                type="text" 
@@ -201,9 +229,79 @@ const Inventory = () => {
                    This asset ({selectedAsset.category}) is currently part of the {selectedAsset.risk} risk profile. 
                    Migration to {selectedAsset.quantumSafe ? 'completed' : 'required (FIPS 203)'}.
                 </p>
-                <button className="btn btn-gold btn-sm" style={{ width: '100%' }} onClick={() => alert('Opening Full Audit Trace...')}>⚡ View Full Audit Trace</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Asset Modal */}
+      {isAddModalOpen && (
+        <div className="modal-overlay show" onClick={() => setIsAddModalOpen(false)}>
+          <div className="modal-box" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-hdr">
+              <h3>Add Manual Asset</h3>
+              <button className="modal-close" onClick={() => setIsAddModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleAddAsset} className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="form-group">
+                <label className="form-label">Component Name</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  required
+                  value={newAsset.component}
+                  onChange={e => setNewAsset({...newAsset, component: e.target.value})}
+                  placeholder="e.g. OpenSSL 3.0"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Algorithm</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={newAsset.algorithm}
+                  onChange={e => setNewAsset({...newAsset, algorithm: e.target.value})}
+                  placeholder="e.g. RSA-2048"
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-group">
+                  <label className="form-label">Category</label>
+                  <select 
+                    className="form-select"
+                    value={newAsset.category}
+                    onChange={e => setNewAsset({...newAsset, category: e.target.value})}
+                  >
+                    <option>Software</option>
+                    <option>Library</option>
+                    <option>TLS</option>
+                    <option>VPN</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Risk Profile</label>
+                  <select 
+                    className="form-select"
+                    value={newAsset.risk}
+                    onChange={e => setNewAsset({...newAsset, risk: e.target.value})}
+                  >
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Critical</option>
+                  </select>
+                </div>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={newAsset.quantum_safe}
+                  onChange={e => setNewAsset({...newAsset, quantum_safe: e.target.checked})}
+                /> Quantum-Safe Algorithm (PQC)
+              </label>
+              <button type="submit" className="btn btn-gold" style={{ marginTop: '10px' }}>💾 Save to Database</button>
+            </form>
           </div>
         </div>
       )}

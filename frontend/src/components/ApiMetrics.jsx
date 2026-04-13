@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ApiMetrics = ({ data }) => {
+  const navigate = useNavigate();
   if (!data) return (
     <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', opacity: 0.5 }}>
       <div style={{ textAlign: 'center' }}>
@@ -52,7 +54,7 @@ const ApiMetrics = ({ data }) => {
         </div>
       </div>
       <div style={{ marginTop: '12px', textAlign: 'right' }}>
-        <button className="btn btn-outline btn-sm">View Full AI Analysis Report</button>
+        <button className="btn btn-outline btn-sm" onClick={() => navigate('/remediation')}>View Full AI Analysis Report</button>
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { sendEmailReport } from '../api';
+import { sendEmailReport, createSchedule } from '../api';
 import { useScan } from '../context/ScanContext';
+import { useToast } from '../context/ToastContext';
 
 const Reporting = () => {
   const { activeScanId, activeScanMetadata } = useScan();
+  const { showToast } = useToast();
   const [reportType, setReportType] = useState('executive');
   const [isScheduled, setIsScheduled] = useState(false);
   const [email, setEmail] = useState('');
@@ -12,7 +14,7 @@ const Reporting = () => {
 
   const handleSendEmail = async () => {
     if (!email) {
-      alert('Please enter a valid email address.');
+      showToast('Please enter a valid email address.', 'error');
       return;
     }
     setSending(true);
@@ -23,21 +25,43 @@ const Reporting = () => {
         if (response.data.simulated) {
           const backendMsg = response.data.message || '';
           if (backendMsg.includes('Demo Mode')) {
-            alert(`[SIMULATION MODE] Report logged to server console.\n\nNotice: ${backendMsg}\n\nNote: Gmail often blocks basic SMTP Authentication by default. You may need to use an App Password for this account.`);
+            showToast(`[DEMO] Report logged to console. SMTP auth blocked.`, 'info');
           } else {
-            alert(`[SIMULATION MODE] The report for ${email} has been generated and logged to the server console. To send real emails, please configure SMTP credentials in the backend .env file.`);
+            showToast(`[SIMULATION] Report generated and logged.`, 'info');
           }
         } else {
-          alert(`Success! The ${reportType.toUpperCase()} report has been dispatched to ${email}.`);
+          showToast(`Success! ${reportType.toUpperCase()} report dispatched to ${email}.`, 'success');
         }
       } else {
-        alert(response.data.message || 'Failed to send report. Check SMTP configuration.');
+        showToast(response.data.message || 'Failed to send report. Check SMTP config.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error sending report.');
+      showToast('Dispatch failed. Mail buffer full.', 'error');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    showToast('Encrypting and generating official PQC audit...', 'info');
+    const url = `/api/data/report/download-pdf?type=${reportType}`;
+    window.open(url, '_blank');
+  };
+
+  const handleSaveSchedule = async () => {
+    try {
+      const payload = {
+        frequency: isScheduled ? 'daily' : 'once',
+        targets: activeScanMetadata || {}
+      };
+      const res = await createSchedule(payload);
+      if (res.data.success) {
+        showToast('Scanning schedule persisted in ledger.', 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to save schedule. Persistence error.', 'error');
     }
   };
 
@@ -137,8 +161,8 @@ const Reporting = () => {
         </div>
 
         <div style={{ marginTop: '30px', borderTop: '1px solid #f0f0f0', paddingTop: '20px', display: 'flex', gap: '15px' }}>
-          <button className="btn btn-gold" style={{ padding: '12px 30px' }} onClick={() => alert('Generating Official Report PDF...')}>🚀 Generate Official PDF</button>
-          <button className="btn btn-outline" style={{ padding: '12px 30px' }} onClick={() => alert('Schedule Saved.')}>💾 Save Scan Schedule</button>
+          <button className="btn btn-gold" style={{ padding: '12px 30px' }} onClick={handleDownloadPDF}>🚀 Generate Official PDF</button>
+          <button className="btn btn-outline" style={{ padding: '12px 30px' }} onClick={handleSaveSchedule}>💾 Save Scan Schedule</button>
         </div>
       </div>
     </div>

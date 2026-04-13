@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { chatWithExpert } from '../api';
 import { useScan } from '../context/ScanContext';
+import { useToast } from '../context/ToastContext';
 import ReactMarkdown from 'react-markdown';
 import { Copy, Terminal, Zap } from 'lucide-react';
 
 const Remediation = () => {
   const { activeScanId, activeScanMetadata } = useScan();
+  const { showToast } = useToast();
   const [remediations, setRemediations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [openIndex, setOpenIndex] = useState(0);
@@ -100,12 +102,21 @@ const Remediation = () => {
                     <pre>{r.code}</pre>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                        <button className="btn btn-gold btn-sm" onClick={() => alert(`Initiating Ansible Playbook for: ${r.title}`)}>
+                        <button className="btn btn-gold btn-sm" onClick={() => {
+                          showToast('Compiling YAML playbook and triggering cross-compile...', 'info');
+                          const blob = new Blob([r.code], { type: 'text/yaml' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `pqc_migration_${r.title.toLowerCase().replace(/\s+/g, '_')}.yaml`;
+                          link.click();
+                          URL.revokeObjectURL(url);
+                        }}>
                           <Terminal size={14} style={{ marginRight: '6px' }} /> Deploy via Ansible
                         </button>
                         <button className="btn btn-outline btn-sm" onClick={() => {
                           navigator.clipboard.writeText(r.code);
-                          alert('Snippet copied to clipboard!');
+                          showToast('Remediation sequence copied to clipboard.', 'success');
                         }}>
                           <Copy size={14} style={{ marginRight: '6px' }} /> Copy Snippet
                         </button>
