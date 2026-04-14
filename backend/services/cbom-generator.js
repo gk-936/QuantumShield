@@ -4,7 +4,7 @@
 function generateCycloneDX(items) {
     const timestamp = new Date().toISOString();
     
-    const cbom = {
+    const bom = {
         bomFormat: "CycloneDX",
         specVersion: "1.5",
         serialNumber: `urn:uuid:${require('crypto').randomUUID()}`,
@@ -14,16 +14,19 @@ function generateCycloneDX(items) {
             tools: [
                 {
                     vendor: "Qubit-Guard",
-                    name: "Triad Engine",
-                    version: "1.0.0"
+                    name: "Q-Guard Engine",
+                    version: "2.0.0"
                 }
             ],
             authors: [
                 {
-                    name: "QuantumShield Auditor",
-                    email: "auditor@pnb.bank.in"
+                    name: "Qubit-Guard Security Team",
+                    email: "security@qubitguard.ai"
                 }
-            ]
+            ],
+            supplier: {
+                name: "Qubit-Guard Open Source"
+            }
         },
         components: items.map(item => ({
             type: "library",

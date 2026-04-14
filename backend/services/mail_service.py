@@ -54,21 +54,29 @@ def generate_professional_pdf(report_type: str, scan_data: dict, db: Session = N
     # Normalize items (handle both DB objects and JSON dicts)
     normalized_items = []
     for c in cbom_items:
+        item_dict = {}
         if not isinstance(c, dict):
             # ORM object conversion
-            normalized_items.append({
-                "component": getattr(c, "component", "Unknown"),
+            item_dict = {
+                "component": getattr(c, "component", getattr(c, "name", "Unknown")),
                 "version": getattr(c, "version", "N/A"),
-                "algorithm": getattr(c, "algorithm", "Unknown"),
-                "quantumSafe": getattr(c, "quantum_safe", False),
+                "algorithm": getattr(c, "algorithm", getattr(c, "crypto", "Unknown")),
+                "quantumSafe": getattr(c, "quantum_safe", getattr(c, "quantumSafe", False)),
                 "risk": getattr(c, "risk", "Medium"),
                 "purl": getattr(c, "purl", "N/A"),
-            })
+            }
         else:
-            # Already a dict, but ensure quantumSafe exists (handle DB-sourced dicts)
-            if "quantum_safe" in c and "quantumSafe" not in c:
-                c["quantumSafe"] = c["quantum_safe"]
-            normalized_items.append(c)
+            # Handle dictionary sourcing
+            item_dict = {
+                "component": c.get("component", c.get("name", "Unknown")),
+                "version": c.get("version", "N/A"),
+                "algorithm": c.get("algorithm", c.get("crypto", "Unknown")),
+                "quantumSafe": c.get("quantumSafe", c.get("quantum_safe", False)),
+                "risk": c.get("risk", "Medium"),
+                "purl": c.get("purl", "N/A"),
+            }
+        
+        normalized_items.append(item_dict)
     
     cbom_items = normalized_items
 
@@ -817,6 +825,9 @@ Research and Development: Qubit-Guard v2.0
     msg.attach(alt_part)
     
     # Attach requested formats
+    bank_id = bank_name.replace(" ", "_").replace("Bank", "").strip("_") if bank_name else "QVS"
+    if not bank_id: bank_id = "QVS"
+    
     formats = scan_data.get("formats", [])
     for fmt in formats:
         try:
@@ -825,27 +836,27 @@ Research and Development: Qubit-Guard v2.0
             if fmt == "json":
                 # Export raw scan data as JSON
                 payload = json.dumps(scan_data, indent=2).encode("utf-8")
-                filename = f"pnb_qvs_audit_{report_type.lower()}.json"
+                filename = f"{bank_id}_qvs_audit_{report_type.lower()}.json"
             
             elif fmt == "excel":
                 # Excel spreadsheet with CBOM components
                 cbom_items = scan_data.get("cbom", {}).get("components", [])
                 excel_lines = ["Component,Version,Algorithm,Quantum-Safe,Risk,Action"]
                 for item in cbom_items[:50]:  # Limit to 50 for readability
-                    comp = item.get("component", "")
-                    ver = item.get("version", "")
-                    algo = item.get("algorithm", "")
-                    safe = "Yes" if item.get("quantumSafe") else "No"
-                    risk = item.get("risk", "Unknown")
-                    action = item.get("action", "Review required")
+                    comp = item.get("component", item.get("name", "Unknown Service"))
+                    ver = item.get("version", "v1.0")
+                    algo = item.get("algorithm", item.get("crypto", "Classical"))
+                    safe = "Yes" if item.get("quantumSafe", item.get("quantum_safe", False)) else "No"
+                    risk = item.get("risk", "High" if not item.get("quantumSafe", item.get("quantum_safe", False)) else "Low")
+                    action = item.get("action", "Migrate to NIST PQC" if not item.get("quantumSafe", item.get("quantum_safe", False)) else "Monitor")
                     excel_lines.append(f'"{comp}","{ver}","{algo}","{safe}","{risk}","{action}"')
                 payload = "\n".join(excel_lines).encode("utf-8")
-                filename = f"pnb_cbom_inventory_{report_type.lower()}.csv"
+                filename = f"{bank_id}_cbom_inventory_{report_type.lower()}.csv"
             
             else:  # pdf
                 # Generate professional PDF using the new algorithm
                 payload = generate_professional_pdf(report_type, scan_data, db)
-                filename = f"PNB_QVS_Audit_Report_{report_type}.pdf"
+                filename = f"{bank_id}_QVS_Audit_Report_{report_type.title()}.pdf"
             
             part.set_payload(payload)
             encoders.encode_base64(part)

@@ -45,43 +45,40 @@ const Posture = () => {
       </div>
 
       <div className="card">
-        <div className="card-title">Detailed Cryptographic Inventory & Audit Status — {activeData?.webUrl || 'Global'}</div>
+        <div className="card-title">Live Cryptographic Inventory & Audit Status</div>
         <table className="data-table">
           <thead>
             <tr>
-              <th>Asset Name</th>
-              <th>Surface</th>
+              <th>Service Infrastructure</th>
+              <th>Category</th>
+              <th>Tech Profile</th>
               <th>Active Algorithm</th>
-              <th>QVS Score</th>
-              <th>NIST Compliance</th>
-              <th>Action</th>
+              <th>Risk Level</th>
+              <th>NIST Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>{activeData?.webUrl || 'www.pnbindia.in'}</td>
-              <td><span className="risk-badge rb-low">WEB</span></td>
-              <td style={{ fontFamily: 'var(--mono)', fontWeight: 700 }}>{activeData?.findings?.web?.[0]?.raw?.key_type || 'RSA-2048'}</td>
-              <td><span style={{ color: (activeData?.riskScores?.web > 50 ? '#C0272D' : '#1A8A1A'), fontWeight: 700 }}>{activeData?.riskScores?.web ?? 95}</span></td>
-              <td>{activeData?.riskScores?.web < 20 ? '✅ FIPS 203 Ready' : '❌ Quantum Vulnerable'}</td>
-              <td><button className="btn btn-outline btn-sm" onClick={() => navigate('/inventory')}>Audit</button></td>
-            </tr>
-            <tr>
-              <td>{activeData?.vpnUrl || 'vpn.pnb.bank.in'}</td>
-              <td><span className="risk-badge rb-medium">VPN</span></td>
-              <td style={{ fontFamily: 'var(--mono)', fontWeight: 700 }}>{activeData?.findings?.vpn?.[0]?.issue?.includes('IKEv2') ? 'IKEv2 (Fallback)' : 'Classical SSL-VPN'}</td>
-              <td><span style={{ color: (activeData?.riskScores?.vpn > 50 ? '#C0272D' : '#1A8A1A'), fontWeight: 700 }}>{activeData?.riskScores?.vpn ?? 98}</span></td>
-              <td>{activeData?.riskScores?.vpn < 20 ? '✅ PQC Enabled' : '❌ Legacy Tunnel'}</td>
-              <td><button className="btn btn-gold btn-sm" onClick={() => navigate('/remediation')}>Remediate</button></td>
-            </tr>
-            <tr>
-              <td>{activeData?.apiUrl || 'api-payments.pnb.in'}</td>
-              <td><span className="risk-badge rb-critical">API</span></td>
-              <td style={{ fontFamily: 'var(--mono)', fontWeight: 700 }}>{activeData?.findings?.api?.[0]?.issue?.includes('JWT') ? 'RSA Signature' : 'ECDSA (P-256)'}</td>
-              <td><span style={{ color: (activeData?.riskScores?.api > 50 ? '#C0272D' : '#1A8A1A'), fontWeight: 700 }}>{activeData?.riskScores?.api ?? 100}</span></td>
-              <td>{activeData?.riskScores?.api < 20 ? '✅ FIPS 204 Ready' : '⚠️ Upgrade Recommended'}</td>
-              <td><button className="btn btn-gold btn-sm" onClick={() => navigate('/pqc-selector')}>Fix Case</button></td>
-            </tr>
+            {(activeData?.cbom?.components || []).map((item, i) => (
+              <tr key={i}>
+                <td style={{ fontWeight: 700, color: '#111' }}>{item.component}</td>
+                <td><span className="risk-badge rb-low" style={{ background: '#eee', color: '#666', fontSize: '10px' }}>{item.category}</span></td>
+                <td>{item.version}</td>
+                <td style={{ fontFamily: 'var(--mono)', fontWeight: 700, fontSize: '11px' }}>{item.algorithm}</td>
+                <td>
+                  <span className={`risk-badge ${item.risk === 'Critical' ? 'rb-critical' : (item.risk === 'High' ? 'rb-high' : 'rb-low')}`}>
+                    {item.risk}
+                  </span>
+                </td>
+                <td>{item.quantumSafe ? '✅ FIPS 203' : '❌ VULNERABLE'}</td>
+              </tr>
+            ))}
+            {(!activeData || !activeData.cbom?.components?.length) && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  No active scan data found. Please initiate an audit from the Dashboard.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

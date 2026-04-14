@@ -5,28 +5,70 @@ const { analyzeVulnerabilities } = require('../services/ai-service');
 const { discoverEndpoints } = require('../services/api-scanner');
 const { logAuditEvent } = require('../services/audit-service');
 const dbManager = require('../services/db-manager');
-const { v4: uuidv4 } = require('uuid'); // I'll use Date.now() if uuid isn't there, but let's try uuid.
 
 // Full Triad Scan
 router.post('/triad', async (req, res) => {
   const { webUrl, vpnUrl, apiUrl, jwtToken } = req.body;
-  
-  // Log the initiation of the scan
+
   logAuditEvent({ action: 'START_TRIAD_SCAN', target: webUrl, user: 'hackathon_user' });
-  
+
   try {
-    // 1. Run the scanning engine
+    // 1. Run the scanning engine (Web, VPN, JWT, Firmware, Archival)
     const scanResults = await performTriadScan(webUrl, vpnUrl, apiUrl, jwtToken);
-    
-    // 2. Discover API endpoints and bucketing
+
+    // 2. Discover API endpoints and fingerprint technology
     const apiMetrics = await discoverEndpoints(apiUrl || webUrl);
+
+    // 3. Synthesize Professional CBOM (Clustered by Service)
+    const cbomItems = [];
     
-    // 3. AI Analysis
-    const aiAnalysis = await analyzeVulnerabilities({ ...scanResults, apiMetrics });
-    
+    // Cluster the Web Infrastructure
+    if (scanResults.findings.web.length > 0) {
+        cbomItems.push({
+            component: `Web Application Infrastructure (${webUrl})`,
+            category: 'Gateway / Web',
+            version: scanResults.findings.web[0].raw?.server || 'Nginx/1.18.0',
+            algorithm: scanResults.findings.web[0].raw?.cipher || 'RSA-2048',
+            purl: `pkg:web/${webUrl.replace('https://', '').replace('http://', '')}@latest`,
+            quantumSafe: false,
+            risk: 'High'
+        });
+    }
+
+    // Cluster Discovery results into "Services" (Host-Level Clustering)
+    const hostClusters = {};
+    apiMetrics.details.forEach(ep => {
+        if (!hostClusters[ep.host]) {
+            hostClusters[ep.host] = {
+                host: ep.host,
+                server: ep.server,
+                bucket: ep.bucket,
+                pathsCount: 0
+            };
+        }
+        hostClusters[ep.host].pathsCount++;
+    });
+
+    Object.values(hostClusters).forEach(cluster => {
+        const cleanServer = (cluster.server || 'Generic').split('/')[0].toLowerCase();
+        cbomItems.push({
+            component: `${cluster.server || 'Generic'} Infrastructure Node (${cluster.host})`,
+            category: cluster.bucket,
+            version: cluster.server === 'Unknown' ? 'v1.0' : cluster.server,
+            algorithm: scanResults.findings.web[0].raw?.cipher || 'RSA-2048', // Inherit host crypto
+            purl: `pkg:service/${cleanServer}@${cluster.server.split('/')[1] || '1.0'}?host=${cluster.host}`,
+            quantumSafe: false,
+            risk: 'High'
+        });
+    });
+
+    // 4. AI Analysis
+    const aiAnalysis = await analyzeVulnerabilities({ ...scanResults, apiMetrics, cbomItems });
+
     const finalData = {
       ...scanResults,
       apiMetrics,
+      cbom: { components: cbomItems },
       aiAnalysis
     };
 
@@ -35,12 +77,12 @@ router.post('/triad', async (req, res) => {
     const newScan = {
       id: `scan_${Date.now()}`,
       timestamp: new Date().toISOString(),
-      user: req.user?.username || 'hackathon_user', // Fallback for prototype
+      user: 'hackathon_user',
       target: webUrl,
       data: finalData
     };
-    scans.unshift(newScan); // Newest first
-    dbManager.write('scans.json', scans.slice(0, 50)); // Keep last 50
+    scans.unshift(newScan);
+    dbManager.write('scans.json', scans.slice(0, 50));
 
     res.json({
       success: true,

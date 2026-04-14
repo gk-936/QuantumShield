@@ -44,10 +44,10 @@ def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url
             "crypto": detected_algo,
             "quantumSafe": is_quantum_safe,
             "properties": [
-                {"name": "quantum-shield:asset-type", "value": cfg["asset"]},
-                {"name": "quantum-shield:crypto-algorithm", "value": detected_algo},
-                {"name": "quantum-shield:quantum-safe", "value": str(is_quantum_safe).lower()},
-                {"name": "quantum-shield:detected-at", "value": datetime.utcnow().isoformat()},
+                {"name": "qubit-guard:asset-type", "value": cfg["asset"]},
+                {"name": "qubit-guard:crypto-algorithm", "value": detected_algo},
+                {"name": "qubit-guard:quantum-safe", "value": str(is_quantum_safe).lower()},
+                {"name": "qubit-guard:detected-at", "value": datetime.utcnow().isoformat()},
             ]
         })
     
@@ -140,8 +140,8 @@ def generate_triad_cbom(scan_findings: dict, web_url: str, vpn_url: str, api_url
             ],
             "authors": [
                 {
-                    "name": "QuantumShield Auditor",
-                    "email": "auditor@pnb.bank.in",
+                    "name": "Qubit-Guard Auditor",
+                    "email": "auditor@qubitguard.ai",
                 }
             ],
         },
@@ -163,7 +163,7 @@ def generate_cyclonedx(items: list) -> dict:
         "metadata": {
             "timestamp": datetime.utcnow().isoformat(),
             "tools": [{"vendor": "Qubit-Guard", "name": "Triad Engine", "version": "2.0.0"}],
-            "authors": [{"name": "QuantumShield Auditor", "email": "auditor@pnb.bank.in"}],
+            "authors": [{"name": "Qubit-Guard Auditor", "email": "auditor@qubitguard.ai"}],
         },
         "components": [
             {
@@ -172,10 +172,10 @@ def generate_cyclonedx(items: list) -> dict:
                 "version": item.get("version", ""),
                 "purl": item.get("purl", ""),
                 "properties": [
-                    {"name": "quantum-shield:crypto-algorithm", "value": item.get("algorithm", "")},
-                    {"name": "quantum-shield:key-size", "value": item.get("key_size", "")},
-                    {"name": "quantum-shield:mode", "value": item.get("mode", "")},
-                    {"name": "quantum-shield:quantum-safe", "value": str(item.get("quantum_safe", False)).lower()},
+                    {"name": "qubit-guard:crypto-algorithm", "value": item.get("algorithm", "")},
+                    {"name": "qubit-guard:key-size", "value": item.get("key_size", "")},
+                    {"name": "qubit-guard:mode", "value": item.get("mode", "")},
+                    {"name": "qubit-guard:quantum-safe", "value": str(item.get("quantum_safe", False)).lower()},
                 ],
             }
             for item in items

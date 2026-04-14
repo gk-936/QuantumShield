@@ -88,16 +88,16 @@ const OwaspAudit = () => {
           <button className="btn btn-sm btn-outline" onClick={() => navigate('/triad')} style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <ArrowLeft size={14} /> Back to Scanner
           </button>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#fff' }}>
             OWASP Top 10 (2025) Risk Comparison
           </h2>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            Target: <b style={{ color: 'var(--pnb-red)' }}>{url}</b> · Security Audit Layer: Triad Analysis
+          <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)', marginTop: '4px' }}>
+            Target: <b style={{ color: 'var(--pnb-gold2)' }}>{url}</b> · Security Audit Layer: Triad Analysis
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-           <div style={{ fontSize: '10px', color: '#888', letterSpacing: '2px', fontWeight: 700 }}>OVERALL QVS</div>
-           <div style={{ fontSize: '36px', fontWeight: 800, color: 'var(--pnb-red)', lineHeight: 1 }}>{riskScores.overall}</div>
+           <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.6)', letterSpacing: '2px', fontWeight: 700 }}>OVERALL QVS</div>
+           <div style={{ fontSize: '36px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{riskScores.overall}</div>
         </div>
       </div>
 

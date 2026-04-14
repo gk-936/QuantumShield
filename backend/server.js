@@ -28,7 +28,7 @@ initScheduler();
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({ 
-    status: 'QuantumShield AI Backend v1.0 Active', 
+    status: 'Qubit-Guard AI Backend v1.0 Active', 
     pqc_engine: 'Ready',
     timestamp: new Date().toISOString() 
   });

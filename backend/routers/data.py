@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from models import DashboardSummary, InventoryStat, PostureStat, CbomVulnerabilitySummary, CbomItem, ScanResult
 from services.cbom_generator import generate_cyclonedx
-from services.mail_service import send_scan_report, send_scan_report_async, generate_professional_pdf
+from services.mail_service import send_scan_report, send_scan_report_async, generate_professional_pdf, _extract_bank_name
 from pydantic import BaseModel
 
 class EmailRequest(BaseModel):
@@ -483,11 +483,17 @@ def download_pdf_report(type: str = "executive", db: Session = Depends(get_db)):
     # Generate PDF binary
     pdf_bytes = generate_professional_pdf(type, scan_data, db)
     
+    # Prepare dynamic filename
+    bank_name = _extract_bank_name(latest_scan.web_url if latest_scan else "")
+    bank_id = bank_name.replace(" ", "_").replace("Bank", "").strip("_") if bank_name else "QVS"
+    if not bank_id: bank_id = "QVS"
+    filename = f"{bank_id}_QVS_Audit_{type.title()}.pdf"
+
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=PNB_QVS_Audit_{type.title()}.pdf"
+            "Content-Disposition": f"attachment; filename={filename}"
         }
     )
 

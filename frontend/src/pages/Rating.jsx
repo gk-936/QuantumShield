@@ -3,9 +3,9 @@ import { useScan } from '../context/ScanContext';
 
 const Rating = () => {
   const { activeData } = useScan();
-  const qvs = activeData?.riskScores?.overall || 85;
-  const ratingScore = Math.max(0, 1000 - (qvs * 8));
-  const ratingLabel = ratingScore > 700 ? '✓ Elite-PQC Status' : ratingScore > 400 ? '🔰 Standard Status' : '⭕ Legacy Status';
+  const qvs = activeData?.riskScores?.overall || 0;
+  const ratingScore = activeData ? Math.max(0, 1000 - (qvs * 8)) : 0;
+  const ratingLabel = !activeData ? '⭕ No Audit Data' : ratingScore > 700 ? '✓ Elite-PQC Status' : ratingScore > 400 ? '🔰 Standard Status' : '⭕ Legacy Status';
 
   return (
     <div id="page-rating" className="page-view">
